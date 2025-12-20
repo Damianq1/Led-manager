@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#1a1a2e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="Sterowanie oświetleniem LED ESP32">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💡</text></svg>">
+  <title>LED Manager</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:linear-gradient(135deg,#1a1a2e,#16213e);min-height:100vh;color:#fff;padding-bottom:80px}
+    
+    .header{background:rgba(0,0,0,0.3);padding:16px 20px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;backdrop-filter:blur(10px)}
+    .header h1{font-size:1.3rem;display:flex;align-items:center;gap:10px}
+    .header-btn{background:linear-gradient(135deg,#f59e0b,#fbbf24);border:none;color:#000;width:40px;height:40px;border-radius:50%;font-size:1.5rem;cursor:pointer}
+    
+    .devices{padding:16px}
+    .device-card{background:rgba(55,65,81,0.8);border-radius:16px;padding:16px;margin-bottom:12px;cursor:pointer;transition:0.2s;border:2px solid transparent}
+    .device-card:hover{border-color:#4b5563}
+    .device-card.online{border-left:4px solid #22c55e}
+    .device-card.offline{border-left:4px solid #ef4444;opacity:0.6}
+    .device-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+    .device-name{font-size:1.1rem;font-weight:600}
+    .device-status{font-size:0.75rem;padding:4px 8px;border-radius:8px}
+    .device-status.online{background:#22c55e33;color:#22c55e}
+    .device-status.offline{background:#ef444433;color:#ef4444}
+    .device-ip{color:#9ca3af;font-size:0.85rem}
+    .device-room{color:#fbbf24;font-size:0.8rem;margin-top:4px}
+    
+    .empty-state{text-align:center;padding:60px 20px;color:#6b7280}
+    .empty-state .icon{font-size:4rem;margin-bottom:16px}
+    .empty-state p{margin-bottom:20px}
+    .empty-state button{background:linear-gradient(135deg,#f59e0b,#fbbf24);border:none;color:#000;padding:12px 24px;border-radius:12px;font-size:1rem;cursor:pointer}
+    
+    /* Modal */
+    .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+    .modal-overlay.show{display:flex}
+    .modal{background:#1f2937;border-radius:20px;width:100%;max-width:400px;max-height:90vh;overflow-y:auto}
+    .modal-header{padding:20px;border-bottom:1px solid #374151;display:flex;justify-content:space-between;align-items:center}
+    .modal-header h2{font-size:1.2rem}
+    .modal-close{background:none;border:none;color:#9ca3af;font-size:1.5rem;cursor:pointer}
+    .modal-body{padding:20px}
+    
+    .form-group{margin-bottom:16px}
+    .form-group label{display:block;margin-bottom:6px;color:#9ca3af;font-size:0.9rem}
+    .form-group input,.form-group select{width:100%;padding:12px;border-radius:10px;border:2px solid #374151;background:#111827;color:#fff;font-size:1rem}
+    .form-group input:focus,.form-group select:focus{outline:none;border-color:#fbbf24}
+    
+    .btn{width:100%;padding:14px;border-radius:12px;border:none;font-size:1rem;cursor:pointer;margin-top:8px}
+    .btn-primary{background:linear-gradient(135deg,#f59e0b,#fbbf24);color:#000;font-weight:600}
+    .btn-danger{background:#ef4444;color:#fff}
+    .btn-secondary{background:#374151;color:#fff}
+    
+    /* Panel sterowania */
+    .control-panel{padding:20px}
+    .back-btn{background:none;border:none;color:#fbbf24;font-size:1rem;cursor:pointer;display:flex;align-items:center;gap:8px;margin-bottom:16px}
+    .control-header{text-align:center;margin-bottom:24px}
+    .control-header .icon{font-size:3rem;margin-bottom:8px}
+    .control-header h2{font-size:1.4rem}
+    .control-header .ip{color:#9ca3af;font-size:0.85rem}
+    
+    .control-card{background:rgba(55,65,81,0.8);border-radius:16px;padding:20px;margin-bottom:16px}
+    .control-title{color:#9ca3af;font-size:0.85rem;margin-bottom:12px}
+    
+    .power-row{display:flex;justify-content:space-between;align-items:center}
+    .toggle{width:60px;height:32px;background:#374151;border-radius:16px;position:relative;cursor:pointer;transition:0.3s}
+    .toggle.on{background:linear-gradient(135deg,#f59e0b,#fbbf24)}
+    .toggle::after{content:'';position:absolute;width:26px;height:26px;background:#fff;border-radius:50%;top:3px;left:3px;transition:0.3s}
+    .toggle.on::after{transform:translateX(28px)}
+    
+    .colors{display:flex;gap:12px;justify-content:center;margin-bottom:16px}
+    .color-btn{width:50px;height:50px;border-radius:50%;border:3px solid transparent;cursor:pointer;transition:0.2s}
+    .color-btn:hover{transform:scale(1.1)}
+    .color-btn.sel{border-color:#fff}
+    .c1{background:linear-gradient(135deg,#e8f4ff,#a8c8ff)}
+    .c2{background:linear-gradient(135deg,#fff8e8,#ffe0a0)}
+    .c3{background:linear-gradient(135deg,#ffe8c0,#ffb860)}
+    
+    .slider-group{margin-bottom:14px}
+    .slider-label{display:flex;justify-content:space-between;font-size:0.85rem;margin-bottom:6px}
+    .slider-label span:last-child{color:#fbbf24;font-weight:bold}
+    input[type=range]{width:100%;height:8px;border-radius:4px;-webkit-appearance:none;background:linear-gradient(to right,#374151,#fbbf24)}
+    input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;background:#fff;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.3)}
+    .cold-slider{background:linear-gradient(to right,#374151,#a8c8ff)!important}
+    .warm-slider{background:linear-gradient(to right,#374151,#ffb860)!important}
+    
+    .anim-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .anim-btn{padding:12px 8px;border-radius:12px;border:2px solid #4b5563;background:rgba(75,85,99,0.5);color:#fff;cursor:pointer;font-size:0.85rem;transition:0.2s}
+    .anim-btn.sel{border-color:#fbbf24;background:rgba(251,191,36,0.2)}
+    
+    .scan-results{max-height:200px;overflow-y:auto;margin-top:12px}
+    .scan-item{padding:12px;background:#111827;border-radius:8px;margin-bottom:8px;cursor:pointer;display:flex;justify-content:space-between}
+    .scan-item:hover{background:#1f2937}
+    
+    .loading{text-align:center;padding:20px;color:#9ca3af}
+    .spinner{width:30px;height:30px;border:3px solid #374151;border-top-color:#fbbf24;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 10px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    
+    .toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#22c55e;color:#fff;padding:12px 24px;border-radius:10px;z-index:300;opacity:0;transition:0.3s}
+    .toast.show{opacity:1}
+    .toast.error{background:#ef4444}
+  </style>
+</head>
+<body>
+  <div id="app">
+    <!-- Lista urządzeń -->
+    <div id="deviceList">
+      <div class="header">
+        <h1>💡 LED Manager</h1>
+        <button class="header-btn" onclick="showAddModal()">+</button>
+      </div>
+      
+      <div class="devices" id="devicesContainer">
+        <!-- Dynamiczna lista -->
+      </div>
+    </div>
+    
+    <!-- Panel sterowania -->
+    <div id="controlPanel" style="display:none">
+      <div class="header">
+        <button class="back-btn" onclick="showDeviceList()">← Powrót</button>
+        <button class="header-btn" onclick="showEditModal()" style="font-size:1rem">✏️</button>
+      </div>
+      
+      <div class="control-panel">
+        <div class="control-header">
+          <div class="icon" id="ctrlIcon">💡</div>
+          <h2 id="ctrlName">-</h2>
+          <div class="ip" id="ctrlIp">-</div>
+        </div>
+        
+        <div class="control-card">
+          <div class="power-row">
+            <span>Zasilanie</span>
+            <div class="toggle" id="pwrToggle" onclick="togglePower()"></div>
+          </div>
+        </div>
+        
+        <div class="control-card">
+          <div class="control-title">Szybki wybór barwy</div>
+          <div class="colors">
+            <button class="color-btn c1" data-c="255" data-w="0" onclick="selectColor(this)"></button>
+            <button class="color-btn c2" data-c="180" data-w="100" onclick="selectColor(this)"></button>
+            <button class="color-btn c3" data-c="0" data-w="255" onclick="selectColor(this)"></button>
+          </div>
+          
+          <div class="control-title">Precyzyjne ustawienie</div>
+          <div class="slider-group">
+            <div class="slider-label"><span>❄️ Zimna</span><span id="coldVal">255</span></div>
+            <input type="range" min="0" max="255" value="255" class="cold-slider" id="coldSlider" oninput="updateCold()" onchange="sendColor()">
+          </div>
+          <div class="slider-group">
+            <div class="slider-label"><span>🔥 Ciepła</span><span id="warmVal">0</span></div>
+            <input type="range" min="0" max="255" value="0" class="warm-slider" id="warmSlider" oninput="updateWarm()" onchange="sendColor()">
+          </div>
+        </div>
+        
+        <div class="control-card">
+          <div class="slider-group">
+            <div class="slider-label"><span>☀️ Jasność</span><span id="brVal">100%</span></div>
+            <input type="range" min="0" max="255" value="255" id="brSlider" oninput="updateBr()" onchange="sendBrightness()">
+          </div>
+        </div>
+        
+        <div class="control-card">
+          <div class="control-title">Animacja startowa</div>
+          <div class="anim-grid">
+            <button class="anim-btn" data-a="0" onclick="selectAnim(this)">🐍 Wąż</button>
+            <button class="anim-btn" data-a="1" onclick="selectAnim(this)">⚡ Błyskawica</button>
+            <button class="anim-btn" data-a="2" onclick="selectAnim(this)">🌅 Wschód</button>
+            <button class="anim-btn" data-a="3" onclick="selectAnim(this)">💫 Centrum</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Modal dodawania -->
+  <div class="modal-overlay" id="addModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Dodaj urządzenie</h2>
+        <button class="modal-close" onclick="hideModals()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Nazwa urządzenia</label>
+          <input type="text" id="addName" placeholder="np. Sypialnia">
+        </div>
+        <div class="form-group">
+          <label>Pokój</label>
+          <select id="addRoom">
+            <option value="🛏️ Sypialnia">🛏️ Sypialnia</option>
+            <option value="🛋️ Salon">🛋️ Salon</option>
+            <option value="🍳 Kuchnia">🍳 Kuchnia</option>
+            <option value="🚿 Łazienka">🚿 Łazienka</option>
+            <option value="👶 Pokój dziecka">👶 Pokój dziecka</option>
+            <option value="💼 Biuro">💼 Biuro</option>
+            <option value="🚪 Korytarz">🚪 Korytarz</option>
+            <option value="🏠 Inne">🏠 Inne</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Adres IP</label>
+          <input type="text" id="addIp" placeholder="192.168.4.1">
+        </div>
+        
+        <button class="btn btn-secondary" onclick="scanDevices()">🔍 Skanuj sieć</button>
+        <div id="scanResults"></div>
+        
+        <button class="btn btn-primary" onclick="addDevice()" style="margin-top:16px">Dodaj urządzenie</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Modal edycji -->
+  <div class="modal-overlay" id="editModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Edytuj urządzenie</h2>
+        <button class="modal-close" onclick="hideModals()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Nazwa urządzenia</label>
+          <input type="text" id="editName">
+        </div>
+        <div class="form-group">
+          <label>Pokój</label>
+          <select id="editRoom">
+            <option value="🛏️ Sypialnia">🛏️ Sypialnia</option>
+            <option value="🛋️ Salon">🛋️ Salon</option>
+            <option value="🍳 Kuchnia">🍳 Kuchnia</option>
+            <option value="🚿 Łazienka">🚿 Łazienka</option>
+            <option value="👶 Pokój dziecka">👶 Pokój dziecka</option>
+            <option value="💼 Biuro">💼 Biuro</option>
+            <option value="🚪 Korytarz">🚪 Korytarz</option>
+            <option value="🏠 Inne">🏠 Inne</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Adres IP</label>
+          <input type="text" id="editIp">
+        </div>
+        
+        <button class="btn btn-primary" onclick="saveDevice()">Zapisz zmiany</button>
+        <button class="btn btn-danger" onclick="deleteDevice()">Usuń urządzenie</button>
+      </div>
+    </div>
+  </div>
+  
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ============================================
+    // ZARZĄDZANIE URZĄDZENIAMI
+    // ============================================
+    let devices = JSON.parse(localStorage.getItem('ledDevices') || '[]');
+    let currentDevice = null;
+    let isOn = true;
+    
+    function saveDevices() {
+      localStorage.setItem('ledDevices', JSON.stringify(devices));
+    }
+    
+    function showToast(msg, error = false) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = 'toast show' + (error ? ' error' : '');
+      setTimeout(() => t.className = 'toast', 2000);
+    }
+    
+    function renderDevices() {
+      const container = document.getElementById('devicesContainer');
+      
+      if (devices.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="icon">💡</div>
+            <p>Brak urządzeń LED</p>
+            <button onclick="showAddModal()">+ Dodaj pierwsze urządzenie</button>
+          </div>
+        `;
+        return;
+      }
+      
+      container.innerHTML = devices.map((d, i) => `
+        <div class="device-card ${d.online ? 'online' : 'offline'}" onclick="openDevice(${i})">
+          <div class="device-header">
+            <span class="device-name">${d.name}</span>
+            <span class="device-status ${d.online ? 'online' : 'offline'}">${d.online ? 'Online' : 'Offline'}</span>
+          </div>
+          <div class="device-ip">${d.ip}</div>
+          <div class="device-room">${d.room}</div>
+        </div>
+      `).join('');
+    }
+    
+    function checkDevicesStatus() {
+      devices.forEach((d, i) => {
+        fetch(`http://${d.ip}/status`, { mode: 'cors', signal: AbortSignal.timeout(3000) })
+          .then(r => r.json())
+          .then(data => {
+            devices[i].online = true;
+            devices[i].lastStatus = data;
+            renderDevices();
+          })
+          .catch(() => {
+            devices[i].online = false;
+            renderDevices();
+          });
+      });
+    }
+    
+    // ============================================
+    // MODAL DODAWANIA
+    // ============================================
+    function showAddModal() {
+      document.getElementById('addName').value = '';
+      document.getElementById('addIp').value = '192.168.4.1';
+      document.getElementById('scanResults').innerHTML = '';
+      document.getElementById('addModal').classList.add('show');
+    }
+    
+    function hideModals() {
+      document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('show'));
+    }
+    
+    function addDevice() {
+      const name = document.getElementById('addName').value.trim();
+      const room = document.getElementById('addRoom').value;
+      const ip = document.getElementById('addIp').value.trim();
+      
+      if (!name || !ip) {
+        showToast('Wypełnij wszystkie pola', true);
+        return;
+      }
+      
+      devices.push({ name, room, ip, online: false });
+      saveDevices();
+      hideModals();
+      renderDevices();
+      checkDevicesStatus();
+      showToast('Urządzenie dodane!');
+    }
+    
+    function scanDevices() {
+      const results = document.getElementById('scanResults');
+      results.innerHTML = '<div class="loading"><div class="spinner"></div>Skanowanie sieci...</div>';
+      
+      // Skanuj popularne adresy AP ESP32
+      const ipsToScan = [
+        '192.168.4.1',    // Domyślny AP ESP32
+        '192.168.1.1',
+      ];
+      
+      // Dodaj zakres lokalnej sieci
+      for (let i = 100; i <= 120; i++) {
+        ipsToScan.push(`192.168.1.${i}`);
+        ipsToScan.push(`192.168.0.${i}`);
+      }
+      
+      let found = [];
+      let checked = 0;
+      
+      ipsToScan.forEach(ip => {
+        fetch(`http://${ip}/status`, { mode: 'cors', signal: AbortSignal.timeout(1500) })
+          .then(r => r.json())
+          .then(data => {
+            found.push({ ip, data });
+            updateScanResults(found);
+          })
+          .catch(() => {})
+          .finally(() => {
+            checked++;
+            if (checked === ipsToScan.length && found.length === 0) {
+              results.innerHTML = '<div class="loading">Nie znaleziono urządzeń.<br>Sprawdź czy jesteś połączony z siecią "Sypialnia LED"</div>';
+            }
+          });
+      });
+    }
+    
+    function updateScanResults(found) {
+      const results = document.getElementById('scanResults');
+      results.innerHTML = '<div class="scan-results">' + 
+        found.map(f => `
+          <div class="scan-item" onclick="selectScanResult('${f.ip}')">
+            <span>💡 ${f.ip}</span>
+            <span style="color:#22c55e">Online</span>
+          </div>
+        `).join('') +
+      '</div>';
+    }
+    
+    function selectScanResult(ip) {
+      document.getElementById('addIp').value = ip;
+      showToast('IP wybrane: ' + ip);
+    }
+    
+    // ============================================
+    // PANEL STEROWANIA
+    // ============================================
+    function openDevice(index) {
+      currentDevice = { ...devices[index], index };
+      
+      document.getElementById('deviceList').style.display = 'none';
+      document.getElementById('controlPanel').style.display = 'block';
+      
+      document.getElementById('ctrlName').textContent = currentDevice.name;
+      document.getElementById('ctrlIp').textContent = currentDevice.ip;
+      
+      // Pobierz aktualny stan
+      fetchStatus();
+    }
+    
+    function showDeviceList() {
+      document.getElementById('deviceList').style.display = 'block';
+      document.getElementById('controlPanel').style.display = 'none';
+      currentDevice = null;
+      checkDevicesStatus();
+    }
+    
+    function fetchStatus() {
+      if (!currentDevice) return;
+      
+      fetch(`http://${currentDevice.ip}/status`, { signal: AbortSignal.timeout(3000) })
+        .then(r => r.json())
+        .then(d => {
+          document.getElementById('coldSlider').value = d.cold;
+          document.getElementById('coldVal').textContent = d.cold;
+          document.getElementById('warmSlider').value = d.warm;
+          document.getElementById('warmVal').textContent = d.warm;
+          document.getElementById('brSlider').value = d.br;
+          document.getElementById('brVal').textContent = Math.round(d.br / 2.55) + '%';
+          
+          isOn = d.on;
+          document.getElementById('pwrToggle').classList.toggle('on', isOn);
+          
+          document.querySelectorAll('.anim-btn').forEach(b => {
+            b.classList.toggle('sel', b.dataset.a == d.anim);
+          });
+        })
+        .catch(() => showToast('Brak połączenia z urządzeniem', true));
+    }
+    
+    function send(endpoint) {
+      if (!currentDevice) return;
+      fetch(`http://${currentDevice.ip}${endpoint}`)
+        .catch(() => showToast('Błąd połączenia', true));
+    }
+    
+    function togglePower() {
+      isOn = !isOn;
+      document.getElementById('pwrToggle').classList.toggle('on', isOn);
+      send('/power?state=' + (isOn ? 1 : 0));
+    }
+    
+    function selectColor(btn) {
+      document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('sel'));
+      btn.classList.add('sel');
+      
+      document.getElementById('coldSlider').value = btn.dataset.c;
+      document.getElementById('warmSlider').value = btn.dataset.w;
+      document.getElementById('coldVal').textContent = btn.dataset.c;
+      document.getElementById('warmVal').textContent = btn.dataset.w;
+      sendColor();
+    }
+    
+    function updateCold() {
+      document.getElementById('coldVal').textContent = document.getElementById('coldSlider').value;
+      document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('sel'));
+    }
+    
+    function updateWarm() {
+      document.getElementById('warmVal').textContent = document.getElementById('warmSlider').value;
+      document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('sel'));
+    }
+    
+    function updateBr() {
+      const v = document.getElementById('brSlider').value;
+      document.getElementById('brVal').textContent = Math.round(v / 2.55) + '%';
+    }
+    
+    function sendColor() {
+      const cold = document.getElementById('coldSlider').value;
+      const warm = document.getElementById('warmSlider').value;
+      send('/color?cold=' + cold + '&warm=' + warm);
+    }
+    
+    function sendBrightness() {
+      send('/brightness?value=' + document.getElementById('brSlider').value);
+    }
+    
+    function selectAnim(btn) {
+      document.querySelectorAll('.anim-btn').forEach(b => b.classList.remove('sel'));
+      btn.classList.add('sel');
+      send('/animation?type=' + btn.dataset.a);
+    }
+    
+    // ============================================
+    // MODAL EDYCJI
+    // ============================================
+    function showEditModal() {
+      if (!currentDevice) return;
+      document.getElementById('editName').value = currentDevice.name;
+      document.getElementById('editRoom').value = currentDevice.room;
+      document.getElementById('editIp').value = currentDevice.ip;
+      document.getElementById('editModal').classList.add('show');
+    }
+    
+    function saveDevice() {
+      if (!currentDevice) return;
+      
+      const name = document.getElementById('editName').value.trim();
+      const room = document.getElementById('editRoom').value;
+      const ip = document.getElementById('editIp').value.trim();
+      
+      if (!name || !ip) {
+        showToast('Wypełnij wszystkie pola', true);
+        return;
+      }
+      
+      devices[currentDevice.index] = { ...devices[currentDevice.index], name, room, ip };
+      currentDevice = { ...devices[currentDevice.index], index: currentDevice.index };
+      
+      document.getElementById('ctrlName').textContent = name;
+      document.getElementById('ctrlIp').textContent = ip;
+      
+      saveDevices();
+      hideModals();
+      showToast('Zapisano!');
+    }
+    
+    function deleteDevice() {
+      if (!currentDevice) return;
+      if (!confirm('Usunąć urządzenie ' + currentDevice.name + '?')) return;
+      
+      devices.splice(currentDevice.index, 1);
+      saveDevices();
+      hideModals();
+      showDeviceList();
+      showToast('Urządzenie usunięte');
+    }
+    
+    // ============================================
+    // INIT
+    // ============================================
+    renderDevices();
+    checkDevicesStatus();
+    
+    // Odświeżaj status co 30s
+    setInterval(checkDevicesStatus, 30000);
+    
+    // Rejestracja Service Worker dla PWA
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
+  </script>
+</body>
+</html>

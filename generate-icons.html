@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Generuj ikony LED Manager</title>
+  <style>
+    body { font-family: Arial; padding: 20px; background: #1a1a2e; color: #fff; }
+    canvas { border: 1px solid #333; margin: 10px; }
+    a { color: #fbbf24; display: block; margin: 10px 0; }
+  </style>
+</head>
+<body>
+  <h1>Generator ikon LED Manager</h1>
+  <p>Kliknij prawym przyciskiem na obrazek → "Zapisz obraz jako..."</p>
+  
+  <h2>Ikona 192x192</h2>
+  <canvas id="icon192" width="192" height="192"></canvas>
+  
+  <h2>Ikona 512x512</h2>
+  <canvas id="icon512" width="512" height="512"></canvas>
+  
+  <script>
+    function drawIcon(canvas) {
+      const ctx = canvas.getContext('2d');
+      const size = canvas.width;
+      const center = size / 2;
+      
+      // Tło
+      ctx.fillStyle = '#1a1a2e';
+      ctx.fillRect(0, 0, size, size);
+      
+      // Koło gradientowe
+      const gradient = ctx.createRadialGradient(center, center, 0, center, center, size * 0.4);
+      gradient.addColorStop(0, '#fbbf24');
+      gradient.addColorStop(0.5, '#f59e0b');
+      gradient.addColorStop(1, '#d97706');
+      
+      ctx.beginPath();
+      ctx.arc(center, center, size * 0.35, 0, Math.PI * 2);
+      ctx.fillStyle = gradient;
+      ctx.fill();
+      
+      // Żarówka - główka
+      ctx.beginPath();
+      ctx.arc(center, center - size * 0.05, size * 0.2, 0, Math.PI * 2);
+      ctx.fillStyle = '#fff';
+      ctx.fill();
+      
+      // Żarówka - glow
+      const glowGradient = ctx.createRadialGradient(center, center - size * 0.05, size * 0.15, center, center - size * 0.05, size * 0.25);
+      glowGradient.addColorStop(0, 'rgba(255, 255, 255, 0.3)');
+      glowGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      ctx.beginPath();
+      ctx.arc(center, center - size * 0.05, size * 0.25, 0, Math.PI * 2);
+      ctx.fillStyle = glowGradient;
+      ctx.fill();
+      
+      // Żarówka - gwint
+      ctx.fillStyle = '#374151';
+      ctx.fillRect(center - size * 0.08, center + size * 0.1, size * 0.16, size * 0.12);
+      
+      // Paski gwintu
+      ctx.fillStyle = '#4b5563';
+      for (let i = 0; i < 3; i++) {
+        ctx.fillRect(center - size * 0.08, center + size * 0.12 + i * size * 0.03, size * 0.16, size * 0.015);
+      }
+    }
+    
+    drawIcon(document.getElementById('icon192'));
+    drawIcon(document.getElementById('icon512'));
+  </script>
+</body>
+</html>
