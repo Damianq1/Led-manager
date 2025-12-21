@@ -2,22 +2,22 @@
 <html lang="pl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#1a1a2e">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="description" content="Sterowanie oświetleniem LED ESP32">
   <meta name="mobile-web-app-capable" content="yes">
+  <meta name="full-screen" content="yes">
   <link rel="manifest" href="manifest.json">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💡</text></svg>">
-  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' fill='%231a1a2e'/><circle cx='96' cy='82' r='45' fill='%23fbbf24'/><circle cx='96' cy='75' r='30' fill='white'/><rect x='81' y='120' width='30' height='22' rx='3' fill='%23374151'/></svg>">
+  <link rel="icon" href="icon-192.png">
+  <link rel="apple-touch-icon" href="icon-192.png">
   <title>LED Manager</title>
   <style>
     *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
     html,body{height:100%;overflow-x:hidden}
-    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 100%);min-height:100vh;color:#fff;padding-bottom:env(safe-area-inset-bottom)}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 100%);min-height:100vh;min-height:100dvh;color:#fff;padding-bottom:env(safe-area-inset-bottom)}
     
-    /* Header */
     .header{background:rgba(0,0,0,0.4);padding:16px 20px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,0.1)}
     .header h1{font-size:1.3rem;display:flex;align-items:center;gap:10px}
     .header-btns{display:flex;gap:10px}
@@ -25,7 +25,6 @@
     .header-btn:active{transform:scale(0.95)}
     .header-btn.secondary{background:#374151;color:#fff}
     
-    /* Devices List */
     .devices{padding:16px}
     .section-title{font-size:0.8rem;color:#9ca3af;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;padding-left:4px}
     
@@ -33,26 +32,24 @@
     .device-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px}
     .device-card.online::before{background:#22c55e}
     .device-card.offline::before{background:#ef4444}
+    .device-card.locked::after{content:'🔒';position:absolute;right:16px;top:50%;transform:translateY(-50%);font-size:1.2rem}
     .device-card:active{transform:scale(0.98);background:rgba(55,65,81,1)}
     
-    .device-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+    .device-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;padding-right:30px}
     .device-name{font-size:1.1rem;font-weight:600}
     .device-status{font-size:0.7rem;padding:4px 10px;border-radius:20px;font-weight:500}
     .device-status.online{background:rgba(34,197,94,0.2);color:#22c55e}
     .device-status.offline{background:rgba(239,68,68,0.2);color:#ef4444}
     .device-info{display:flex;justify-content:space-between;align-items:center}
     .device-ip{color:#9ca3af;font-size:0.85rem}
-    .device-room{color:#fbbf24;font-size:0.8rem}
     
-    /* Empty State */
     .empty-state{text-align:center;padding:80px 20px;color:#6b7280}
     .empty-state .icon{font-size:5rem;margin-bottom:20px;opacity:0.5}
     .empty-state h2{font-size:1.3rem;color:#9ca3af;margin-bottom:10px}
     .empty-state p{margin-bottom:24px;line-height:1.6}
-    .empty-state button{background:linear-gradient(135deg,#f59e0b,#fbbf24);border:none;color:#000;padding:14px 32px;border-radius:14px;font-size:1rem;font-weight:600;cursor:pointer;box-shadow:0 4px 20px rgba(251,191,36,0.3)}
+    .empty-state button{background:linear-gradient(135deg,#f59e0b,#fbbf24);border:none;color:#000;padding:14px 32px;border-radius:14px;font-size:1rem;font-weight:600;cursor:pointer}
     
-    /* Modal */
-    .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:200;display:none;align-items:flex-end;justify-content:center;padding:0}
+    .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:200;display:none;align-items:flex-end;justify-content:center}
     .modal-overlay.show{display:flex}
     .modal{background:#1f2937;border-radius:24px 24px 0 0;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;animation:slideUp 0.3s ease}
     @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
@@ -66,14 +63,15 @@
     .form-group input,.form-group select{width:100%;padding:14px 16px;border-radius:12px;border:2px solid #374151;background:#111827;color:#fff;font-size:1rem;transition:border-color 0.2s}
     .form-group input:focus,.form-group select:focus{outline:none;border-color:#fbbf24}
     .form-group input::placeholder{color:#6b7280}
+    .form-group .hint{font-size:0.75rem;color:#6b7280;margin-top:6px}
     
     .btn{width:100%;padding:16px;border-radius:14px;border:none;font-size:1rem;font-weight:600;cursor:pointer;margin-top:8px;transition:all 0.2s}
     .btn:active{transform:scale(0.98)}
     .btn-primary{background:linear-gradient(135deg,#f59e0b,#fbbf24);color:#000}
     .btn-danger{background:#ef4444;color:#fff}
     .btn-secondary{background:#374151;color:#fff}
+    .btn-success{background:#22c55e;color:#fff}
     
-    /* Control Panel */
     .control-panel{padding:20px;padding-bottom:40px}
     .back-btn{background:none;border:none;color:#fbbf24;font-size:1rem;cursor:pointer;display:flex;align-items:center;gap:8px;padding:10px 0;font-weight:500}
     
@@ -82,6 +80,7 @@
     .control-header h2{font-size:1.5rem;margin-bottom:4px}
     .control-header .ip{color:#9ca3af;font-size:0.9rem}
     .control-header .room{color:#fbbf24;font-size:0.85rem;margin-top:4px}
+    .control-header .secure{color:#22c55e;font-size:0.75rem;margin-top:8px}
     
     .control-card{background:rgba(55,65,81,0.8);border-radius:20px;padding:20px;margin-bottom:16px}
     .control-title{color:#9ca3af;font-size:0.8rem;margin-bottom:14px;text-transform:uppercase;letter-spacing:1px}
@@ -110,11 +109,31 @@
     .warm-slider{background:linear-gradient(to right,#374151,#ffb860)!important}
     
     .anim-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    .anim-btn{padding:14px 10px;border-radius:14px;border:2px solid #4b5563;background:rgba(75,85,99,0.5);color:#fff;cursor:pointer;font-size:0.9rem;transition:all 0.2s}
+    .anim-item{position:relative}
+    .anim-btn{width:100%;padding:14px 10px;border-radius:14px;border:2px solid #4b5563;background:rgba(75,85,99,0.5);color:#fff;cursor:pointer;font-size:0.85rem;transition:all 0.2s;text-align:center}
     .anim-btn:active{transform:scale(0.97)}
     .anim-btn.sel{border-color:#fbbf24;background:rgba(251,191,36,0.2)}
+    .anim-btn.custom{border-style:dashed}
     
-    /* Scan */
+    .anim-repeats{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px}
+    .anim-repeats button{width:28px;height:28px;border-radius:50%;border:none;background:#374151;color:#fff;font-size:1rem;cursor:pointer}
+    .anim-repeats button:active{background:#4b5563}
+    .anim-repeats span{min-width:24px;text-align:center;font-size:0.9rem}
+    
+    .custom-settings{background:rgba(251,191,36,0.1);border:1px solid #fbbf24;border-radius:12px;padding:16px;margin-top:16px;display:none}
+    .custom-settings.show{display:block}
+    .custom-settings .control-title{color:#fbbf24;margin-bottom:16px}
+    
+    .pattern-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+    .pattern-btn{padding:10px 6px;border-radius:10px;border:2px solid #4b5563;background:rgba(75,85,99,0.5);color:#fff;cursor:pointer;font-size:0.75rem;text-align:center}
+    .pattern-btn.sel{border-color:#fbbf24;background:rgba(251,191,36,0.2)}
+    
+    .direction-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+    .dir-btn{padding:10px 4px;border-radius:10px;border:2px solid #4b5563;background:rgba(75,85,99,0.5);color:#fff;cursor:pointer;font-size:1.2rem;text-align:center}
+    .dir-btn.sel{border-color:#fbbf24;background:rgba(251,191,36,0.2)}
+    
+    .preview-btn{background:linear-gradient(135deg,#8b5cf6,#a78bfa);margin-top:12px}
+    
     .scan-results{max-height:200px;overflow-y:auto;margin-top:16px}
     .scan-item{padding:14px;background:#111827;border-radius:12px;margin-bottom:10px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border:2px solid transparent;transition:all 0.2s}
     .scan-item:active{background:#1f2937;border-color:#fbbf24}
@@ -123,14 +142,14 @@
     .spinner{width:36px;height:36px;border:3px solid #374151;border-top-color:#fbbf24;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 12px}
     @keyframes spin{to{transform:rotate(360deg)}}
     
-    /* Toast */
     .toast{position:fixed;bottom:40px;left:50%;transform:translateX(-50%) translateY(100px);background:#22c55e;color:#fff;padding:14px 28px;border-radius:14px;z-index:300;opacity:0;transition:all 0.3s;font-weight:500;box-shadow:0 4px 20px rgba(0,0,0,0.3)}
     .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
     .toast.error{background:#ef4444}
     
-    /* Connection Status */
     .conn-status{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:rgba(239,68,68,0.9);color:#fff;padding:10px 20px;border-radius:10px;font-size:0.85rem;z-index:150;display:none}
     .conn-status.show{display:block}
+    
+    .code-input{font-family:monospace;letter-spacing:4px;text-align:center;font-size:1.2rem!important}
   </style>
 </head>
 <body>
@@ -164,6 +183,7 @@
           <h2 id="ctrlName">-</h2>
           <div class="room" id="ctrlRoom">-</div>
           <div class="ip" id="ctrlIp">-</div>
+          <div class="secure">🔒 Połączenie zabezpieczone</div>
         </div>
         
         <div class="control-card">
@@ -202,11 +222,83 @@
         <div class="control-card">
           <div class="control-title">Animacja startowa</div>
           <div class="anim-grid">
-            <button class="anim-btn" data-a="0" onclick="selectAnim(this)">🐍 Wąż</button>
-            <button class="anim-btn" data-a="1" onclick="selectAnim(this)">⚡ Błyskawica</button>
-            <button class="anim-btn" data-a="2" onclick="selectAnim(this)">🌅 Wschód</button>
-            <button class="anim-btn" data-a="3" onclick="selectAnim(this)">💫 Centrum</button>
+            <div class="anim-item">
+              <button class="anim-btn" data-a="0" onclick="selectAnim(this)">🐍 Wąż</button>
+              <div class="anim-repeats">
+                <button onclick="changeRepeats(0,-1)">−</button>
+                <span id="rep0">1</span>
+                <button onclick="changeRepeats(0,1)">+</button>
+              </div>
+            </div>
+            <div class="anim-item">
+              <button class="anim-btn" data-a="1" onclick="selectAnim(this)">⚡ Błyskawica</button>
+              <div class="anim-repeats">
+                <button onclick="changeRepeats(1,-1)">−</button>
+                <span id="rep1">1</span>
+                <button onclick="changeRepeats(1,1)">+</button>
+              </div>
+            </div>
+            <div class="anim-item">
+              <button class="anim-btn" data-a="2" onclick="selectAnim(this)">🌅 Wschód</button>
+              <div class="anim-repeats">
+                <button onclick="changeRepeats(2,-1)">−</button>
+                <span id="rep2">1</span>
+                <button onclick="changeRepeats(2,1)">+</button>
+              </div>
+            </div>
+            <div class="anim-item">
+              <button class="anim-btn" data-a="3" onclick="selectAnim(this)">💫 Centrum</button>
+              <div class="anim-repeats">
+                <button onclick="changeRepeats(3,-1)">−</button>
+                <span id="rep3">1</span>
+                <button onclick="changeRepeats(3,1)">+</button>
+              </div>
+            </div>
+            <div class="anim-item" style="grid-column: span 2">
+              <button class="anim-btn custom" data-a="4" onclick="selectAnim(this)">🎨 Własna animacja</button>
+              <div class="anim-repeats">
+                <button onclick="changeRepeats(4,-1)">−</button>
+                <span id="rep4">1</span>
+                <button onclick="changeRepeats(4,1)">+</button>
+              </div>
+            </div>
           </div>
+          
+          <!-- Ustawienia własnej animacji -->
+          <div class="custom-settings" id="customSettings">
+            <div class="control-title">🎨 Edytor własnej animacji</div>
+            
+            <div class="slider-label"><span>Wzór</span></div>
+            <div class="pattern-grid">
+              <button class="pattern-btn sel" data-p="0" onclick="selectPattern(this)">🐍<br>Wąż</button>
+              <button class="pattern-btn" data-p="1" onclick="selectPattern(this)">🌊<br>Fala</button>
+              <button class="pattern-btn" data-p="2" onclick="selectPattern(this)">🎲<br>Losowy</button>
+              <button class="pattern-btn" data-p="3" onclick="selectPattern(this)">🏓<br>Ping-pong</button>
+              <button class="pattern-btn" data-p="4" onclick="selectPattern(this)">📊<br>Segmenty</button>
+            </div>
+            
+            <div class="slider-label"><span>Kierunek</span></div>
+            <div class="direction-grid">
+              <button class="dir-btn sel" data-d="0" onclick="selectDirection(this)">➡️</button>
+              <button class="dir-btn" data-d="1" onclick="selectDirection(this)">⬅️</button>
+              <button class="dir-btn" data-d="2" onclick="selectDirection(this)">↔️</button>
+              <button class="dir-btn" data-d="3" onclick="selectDirection(this)">⬌</button>
+            </div>
+            
+            <div class="slider-group">
+              <div class="slider-label"><span>🚀 Prędkość</span><span id="speedVal">5</span></div>
+              <input type="range" min="1" max="10" value="5" id="speedSlider" oninput="updateSpeed()">
+            </div>
+            
+            <div class="slider-group" id="segmentsGroup">
+              <div class="slider-label"><span>📊 Ilość segmentów</span><span id="segVal">4</span></div>
+              <input type="range" min="2" max="20" value="4" id="segSlider" oninput="updateSegments()">
+            </div>
+            
+            <button class="btn preview-btn" onclick="previewAnimation()">▶️ Podgląd animacji</button>
+          </div>
+          
+          <button class="btn btn-primary" onclick="saveAnimation()" style="margin-top:16px">💾 Zapisz animację</button>
         </div>
       </div>
     </div>
@@ -239,7 +331,12 @@
         </div>
         <div class="form-group">
           <label>Adres IP urządzenia</label>
-          <input type="text" id="addIp" placeholder="192.168.4.1" inputmode="url">
+          <input type="text" id="addIp" placeholder="192.168.1.100" inputmode="url">
+        </div>
+        <div class="form-group">
+          <label>🔐 Kod dostępu</label>
+          <input type="text" id="addCode" class="code-input" placeholder="LED1234" maxlength="16" autocomplete="off">
+          <div class="hint">Kod ustawiony w urządzeniu ESP32</div>
         </div>
         
         <button class="btn btn-secondary" onclick="scanDevices()">🔍 Skanuj sieć</button>
@@ -279,9 +376,33 @@
           <label>Adres IP</label>
           <input type="text" id="editIp" inputmode="url">
         </div>
+        <div class="form-group">
+          <label>🔐 Kod dostępu</label>
+          <input type="text" id="editCode" class="code-input" maxlength="16" autocomplete="off">
+        </div>
         
         <button class="btn btn-primary" onclick="saveDevice()">💾 Zapisz zmiany</button>
         <button class="btn btn-danger" onclick="deleteDevice()" style="margin-top:12px">🗑️ Usuń urządzenie</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Modal autoryzacji -->
+  <div class="modal-overlay" id="authModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>🔐 Wymagana autoryzacja</h2>
+        <button class="modal-close" onclick="hideModals();showDeviceList()">×</button>
+      </div>
+      <div class="modal-body">
+        <p style="color:#9ca3af;margin-bottom:20px;text-align:center">
+          Kod dostępu jest nieprawidłowy.<br>Wprowadź poprawny kod.
+        </p>
+        <div class="form-group">
+          <label>Kod dostępu</label>
+          <input type="text" id="authCode" class="code-input" placeholder="LED1234" maxlength="16" autocomplete="off">
+        </div>
+        <button class="btn btn-primary" onclick="verifyAndConnect()">🔓 Połącz</button>
       </div>
     </div>
   </div>
@@ -291,12 +412,19 @@
 
   <script>
     // ============================================
-    // STORAGE & STATE
+    // STATE
     // ============================================
     let devices = JSON.parse(localStorage.getItem('ledDevices') || '[]');
     let currentDevice = null;
     let isOn = true;
-    let connectionOk = true;
+    
+    // Animacje - stan
+    let animationType = 0;
+    let animationRepeats = [1, 1, 1, 1, 1]; // dla każdej animacji osobno
+    let customPattern = 0;
+    let customSpeed = 5;
+    let customDirection = 0;
+    let customSegments = 4;
     
     function saveDevices() {
       localStorage.setItem('ledDevices', JSON.stringify(devices));
@@ -314,7 +442,15 @@
     
     function showConnStatus(show) {
       document.getElementById('connStatus').classList.toggle('show', show);
-      connectionOk = !show;
+    }
+    
+    // ============================================
+    // HTTP z autoryzacją
+    // ============================================
+    function authFetch(url, deviceCode) {
+      return fetch(url, {
+        headers: { 'X-Device-Code': deviceCode || '' }
+      });
     }
     
     // ============================================
@@ -328,14 +464,13 @@
           <div class="empty-state">
             <div class="icon">💡</div>
             <h2>Brak urządzeń</h2>
-            <p>Dodaj swoje pierwsze urządzenie LED<br>aby rozpocząć sterowanie</p>
+            <p>Dodaj swoje pierwsze urządzenie LED</p>
             <button onclick="showAddModal()">+ Dodaj urządzenie</button>
           </div>
         `;
         return;
       }
       
-      // Grupuj po pokojach
       const rooms = {};
       devices.forEach((d, i) => {
         if (!rooms[d.room]) rooms[d.room] = [];
@@ -347,7 +482,7 @@
         html += `<div class="section-title">${room}</div>`;
         rooms[room].forEach(d => {
           html += `
-            <div class="device-card ${d.online ? 'online' : 'offline'}" onclick="openDevice(${d.index})">
+            <div class="device-card ${d.online ? 'online' : 'offline'} ${d.code ? 'locked' : ''}" onclick="openDevice(${d.index})">
               <div class="device-header">
                 <span class="device-name">${d.name}</span>
                 <span class="device-status ${d.online ? 'online' : 'offline'}">${d.online ? '● Online' : '○ Offline'}</span>
@@ -368,14 +503,10 @@
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 3000);
         
-        fetch(`http://${d.ip}/status`, { 
-          mode: 'cors', 
-          signal: controller.signal 
-        })
+        fetch(`http://${d.ip}/discover`, { signal: controller.signal })
           .then(r => r.json())
           .then(data => {
             devices[i].online = true;
-            devices[i].lastStatus = data;
             renderDevices();
           })
           .catch(() => {
@@ -396,7 +527,8 @@
     // ============================================
     function showAddModal() {
       document.getElementById('addName').value = '';
-      document.getElementById('addIp').value = '192.168.4.1';
+      document.getElementById('addIp').value = '192.168.1.1';
+      document.getElementById('addCode').value = 'LED1234';
       document.getElementById('scanResults').innerHTML = '';
       document.getElementById('addModal').classList.add('show');
     }
@@ -409,37 +541,52 @@
       const name = document.getElementById('addName').value.trim();
       const room = document.getElementById('addRoom').value;
       const ip = document.getElementById('addIp').value.trim();
+      const code = document.getElementById('addCode').value.trim();
       
-      if (!name) {
-        showToast('Podaj nazwę urządzenia', true);
-        return;
-      }
-      if (!ip) {
-        showToast('Podaj adres IP', true);
+      if (!name || !ip || !code) {
+        showToast('Wypełnij wszystkie pola', true);
         return;
       }
       
-      // Sprawdź czy IP już istnieje
       if (devices.some(d => d.ip === ip)) {
         showToast('Urządzenie o tym IP już istnieje', true);
         return;
       }
       
-      devices.push({ name, room, ip, online: false });
-      saveDevices();
-      hideModals();
-      renderDevices();
-      checkDevicesStatus();
-      showToast('✅ Urządzenie dodane!');
+      authFetch(`http://${ip}/status`, code)
+        .then(r => {
+          if (r.status === 401) {
+            showToast('Nieprawidłowy kod dostępu!', true);
+            return null;
+          }
+          return r.json();
+        })
+        .then(data => {
+          if (!data) return;
+          
+          devices.push({ name, room, ip, code, online: true });
+          saveDevices();
+          hideModals();
+          renderDevices();
+          showToast('✅ Urządzenie dodane!');
+        })
+        .catch(() => {
+          devices.push({ name, room, ip, code, online: false });
+          saveDevices();
+          hideModals();
+          renderDevices();
+          showToast('Dodano (offline)', true);
+        });
     }
     
     function scanDevices() {
       const results = document.getElementById('scanResults');
-      results.innerHTML = '<div class="loading"><div class="spinner"></div>Szukam urządzeń LED...</div>';
+      results.innerHTML = '<div class="loading"><div class="spinner"></div>Szukam urządzeń...</div>';
       
-      const ipsToScan = ['192.168.4.1'];
-      
-      // Dodaj popularne zakresy sieci domowych
+      const ipsToScan = [];
+      for (let subnet = 1; subnet <= 10; subnet++) {
+        ipsToScan.push(`192.168.${subnet}.1`);
+      }
       for (let i = 1; i <= 254; i++) {
         ipsToScan.push(`192.168.1.${i}`);
         ipsToScan.push(`192.168.0.${i}`);
@@ -447,51 +594,43 @@
       
       let found = [];
       let checked = 0;
-      const total = ipsToScan.length;
       
       ipsToScan.forEach(ip => {
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 1000);
         
-        fetch(`http://${ip}/status`, { 
-          mode: 'cors', 
-          signal: controller.signal 
-        })
+        fetch(`http://${ip}/discover`, { signal: controller.signal })
           .then(r => r.json())
           .then(data => {
-            if (data.cold !== undefined) { // To jest nasze urządzenie LED
-              found.push({ ip, data });
-              updateScanResults(found, checked, total);
+            if (data.type === 'led-controller') {
+              found.push({ ip, name: data.name });
+              results.innerHTML = '<div class="scan-results">' + 
+                found.map(f => `
+                  <div class="scan-item" onclick="selectScanResult('${f.ip}', '${f.name}')">
+                    <span>💡 ${f.name} (${f.ip})</span>
+                    <span style="color:#22c55e">✓</span>
+                  </div>
+                `).join('') +
+              '</div>';
             }
           })
           .catch(() => {})
           .finally(() => {
             clearTimeout(timeout);
             checked++;
-            if (checked === total) {
-              if (found.length === 0) {
-                results.innerHTML = '<div class="loading" style="color:#ef4444">Nie znaleziono urządzeń.<br><br>Upewnij się, że:<br>• Telefon jest w tej samej sieci WiFi<br>• Lub połączony z siecią "Sypialnia LED"</div>';
-              }
+            if (checked === ipsToScan.length && found.length === 0) {
+              results.innerHTML = '<div class="loading" style="color:#ef4444">Nie znaleziono urządzeń</div>';
             }
           });
       });
     }
     
-    function updateScanResults(found, checked, total) {
-      const results = document.getElementById('scanResults');
-      results.innerHTML = '<div class="scan-results">' + 
-        found.map(f => `
-          <div class="scan-item" onclick="selectScanResult('${f.ip}')">
-            <span>💡 ${f.ip}</span>
-            <span style="color:#22c55e;font-size:0.8rem">Wykryto ✓</span>
-          </div>
-        `).join('') +
-      '</div>';
-    }
-    
-    function selectScanResult(ip) {
+    function selectScanResult(ip, name) {
       document.getElementById('addIp').value = ip;
-      showToast('IP wybrane: ' + ip);
+      if (!document.getElementById('addName').value) {
+        document.getElementById('addName').value = name;
+      }
+      showToast('Wybrano: ' + name);
     }
     
     // ============================================
@@ -514,6 +653,7 @@
     function showDeviceList() {
       document.getElementById('deviceList').style.display = 'block';
       document.getElementById('controlPanel').style.display = 'none';
+      document.getElementById('customSettings').classList.remove('show');
       showConnStatus(false);
       currentDevice = null;
       checkDevicesStatus();
@@ -525,10 +665,18 @@
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 5000);
       
-      fetch(`http://${currentDevice.ip}/status`, { signal: controller.signal })
-        .then(r => r.json())
-        .then(d => {
+      authFetch(`http://${currentDevice.ip}/status`, currentDevice.code)
+        .then(r => {
+          if (r.status === 401) {
+            document.getElementById('authCode').value = currentDevice.code || '';
+            document.getElementById('authModal').classList.add('show');
+            return null;
+          }
           showConnStatus(false);
+          return r.json();
+        })
+        .then(d => {
+          if (!d) return;
           
           document.getElementById('coldSlider').value = d.cold;
           document.getElementById('coldVal').textContent = d.cold;
@@ -540,37 +688,99 @@
           isOn = d.on;
           document.getElementById('pwrToggle').classList.toggle('on', isOn);
           
-          // Zaznacz odpowiedni preset koloru
-          document.querySelectorAll('.color-btn').forEach(b => {
-            const match = b.dataset.c == d.cold && b.dataset.w == d.warm;
-            b.classList.toggle('sel', match);
-          });
+          // Animacje
+          animationType = d.animType || 0;
+          animationRepeats[animationType] = d.animRepeats || 1;
+          customPattern = d.customPattern || 0;
+          customSpeed = d.customSpeed || 5;
+          customDirection = d.customDirection || 0;
+          customSegments = d.customSegments || 4;
           
-          // Zaznacz animację
-          document.querySelectorAll('.anim-btn').forEach(b => {
-            b.classList.toggle('sel', b.dataset.a == d.anim);
-          });
+          updateAnimUI();
         })
         .catch(() => {
           showConnStatus(true);
-          showToast('Brak połączenia z urządzeniem', true);
+          showToast('Brak połączenia', true);
         })
         .finally(() => clearTimeout(timeout));
+    }
+    
+    function updateAnimUI() {
+      // Zaznacz aktywną animację
+      document.querySelectorAll('.anim-btn').forEach(b => {
+        b.classList.toggle('sel', b.dataset.a == animationType);
+      });
+      
+      // Pokaż/ukryj ustawienia własnej animacji
+      document.getElementById('customSettings').classList.toggle('show', animationType == 4);
+      
+      // Aktualizuj powtórzenia
+      for (let i = 0; i < 5; i++) {
+        document.getElementById('rep' + i).textContent = animationRepeats[i];
+      }
+      
+      // Własna animacja - zaznaczenia
+      document.querySelectorAll('.pattern-btn').forEach(b => {
+        b.classList.toggle('sel', b.dataset.p == customPattern);
+      });
+      document.querySelectorAll('.dir-btn').forEach(b => {
+        b.classList.toggle('sel', b.dataset.d == customDirection);
+      });
+      document.getElementById('speedSlider').value = customSpeed;
+      document.getElementById('speedVal').textContent = customSpeed;
+      document.getElementById('segSlider').value = customSegments;
+      document.getElementById('segVal').textContent = customSegments;
+      
+      // Pokaż/ukryj segmenty (tylko dla wzoru segmenty)
+      document.getElementById('segmentsGroup').style.display = customPattern == 4 ? 'block' : 'none';
+    }
+    
+    function verifyAndConnect() {
+      const code = document.getElementById('authCode').value.trim();
+      if (!code) {
+        showToast('Wprowadź kod', true);
+        return;
+      }
+      
+      authFetch(`http://${currentDevice.ip}/status`, code)
+        .then(r => {
+          if (r.status === 401) {
+            showToast('Nieprawidłowy kod!', true);
+            return null;
+          }
+          return r.json();
+        })
+        .then(d => {
+          if (!d) return;
+          
+          currentDevice.code = code;
+          devices[currentDevice.index].code = code;
+          saveDevices();
+          
+          hideModals();
+          showToast('✅ Połączono!');
+          fetchStatus();
+        })
+        .catch(() => {
+          showToast('Błąd połączenia', true);
+        });
     }
     
     function send(endpoint) {
       if (!currentDevice) return;
       
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 5000);
-      
-      fetch(`http://${currentDevice.ip}${endpoint}`, { signal: controller.signal })
-        .then(() => showConnStatus(false))
+      authFetch(`http://${currentDevice.ip}${endpoint}`, currentDevice.code)
+        .then(r => {
+          if (r.status === 401) {
+            showToast('Sesja wygasła', true);
+            document.getElementById('authModal').classList.add('show');
+          }
+          showConnStatus(false);
+        })
         .catch(() => {
           showConnStatus(true);
           showToast('Błąd połączenia', true);
-        })
-        .finally(() => clearTimeout(timeout));
+        });
     }
     
     function togglePower() {
@@ -601,8 +811,7 @@
     }
     
     function updateBr() {
-      const v = document.getElementById('brSlider').value;
-      document.getElementById('brVal').textContent = Math.round(v / 2.55) + '%';
+      document.getElementById('brVal').textContent = Math.round(document.getElementById('brSlider').value / 2.55) + '%';
     }
     
     let colorDebounce = null;
@@ -619,11 +828,71 @@
       send('/brightness?value=' + document.getElementById('brSlider').value);
     }
     
+    // ============================================
+    // ANIMACJE
+    // ============================================
     function selectAnim(btn) {
+      animationType = parseInt(btn.dataset.a);
       document.querySelectorAll('.anim-btn').forEach(b => b.classList.remove('sel'));
       btn.classList.add('sel');
-      send('/animation?type=' + btn.dataset.a);
-      showToast('Animacja zapisana');
+      
+      // Pokaż/ukryj ustawienia własnej animacji
+      document.getElementById('customSettings').classList.toggle('show', animationType == 4);
+    }
+    
+    function changeRepeats(animIndex, delta) {
+      animationRepeats[animIndex] = Math.max(1, Math.min(10, animationRepeats[animIndex] + delta));
+      document.getElementById('rep' + animIndex).textContent = animationRepeats[animIndex];
+    }
+    
+    function selectPattern(btn) {
+      customPattern = parseInt(btn.dataset.p);
+      document.querySelectorAll('.pattern-btn').forEach(b => b.classList.remove('sel'));
+      btn.classList.add('sel');
+      
+      // Pokaż segmenty tylko dla wzoru segmenty
+      document.getElementById('segmentsGroup').style.display = customPattern == 4 ? 'block' : 'none';
+    }
+    
+    function selectDirection(btn) {
+      customDirection = parseInt(btn.dataset.d);
+      document.querySelectorAll('.dir-btn').forEach(b => b.classList.remove('sel'));
+      btn.classList.add('sel');
+    }
+    
+    function updateSpeed() {
+      customSpeed = parseInt(document.getElementById('speedSlider').value);
+      document.getElementById('speedVal').textContent = customSpeed;
+    }
+    
+    function updateSegments() {
+      customSegments = parseInt(document.getElementById('segSlider').value);
+      document.getElementById('segVal').textContent = customSegments;
+    }
+    
+    function previewAnimation() {
+      showToast('Uruchamiam podgląd...');
+      
+      let url = '/preview?type=' + animationType +
+                '&repeats=' + animationRepeats[animationType] +
+                '&pattern=' + customPattern +
+                '&speed=' + customSpeed +
+                '&direction=' + customDirection +
+                '&segments=' + customSegments;
+      
+      send(url);
+    }
+    
+    function saveAnimation() {
+      let url = '/animation?type=' + animationType +
+                '&repeats=' + animationRepeats[animationType] +
+                '&pattern=' + customPattern +
+                '&speed=' + customSpeed +
+                '&direction=' + customDirection +
+                '&segments=' + customSegments;
+      
+      send(url);
+      showToast('💾 Animacja zapisana!');
     }
     
     // ============================================
@@ -634,6 +903,7 @@
       document.getElementById('editName').value = currentDevice.name;
       document.getElementById('editRoom').value = currentDevice.room;
       document.getElementById('editIp').value = currentDevice.ip;
+      document.getElementById('editCode').value = currentDevice.code || '';
       document.getElementById('editModal').classList.add('show');
     }
     
@@ -643,13 +913,14 @@
       const name = document.getElementById('editName').value.trim();
       const room = document.getElementById('editRoom').value;
       const ip = document.getElementById('editIp').value.trim();
+      const code = document.getElementById('editCode').value.trim();
       
-      if (!name || !ip) {
+      if (!name || !ip || !code) {
         showToast('Wypełnij wszystkie pola', true);
         return;
       }
       
-      devices[currentDevice.index] = { ...devices[currentDevice.index], name, room, ip };
+      devices[currentDevice.index] = { ...devices[currentDevice.index], name, room, ip, code };
       currentDevice = { ...devices[currentDevice.index], index: currentDevice.index };
       
       document.getElementById('ctrlName').textContent = name;
@@ -663,13 +934,13 @@
     
     function deleteDevice() {
       if (!currentDevice) return;
-      if (!confirm('Czy na pewno usunąć urządzenie "' + currentDevice.name + '"?')) return;
+      if (!confirm('Usunąć "' + currentDevice.name + '"?')) return;
       
       devices.splice(currentDevice.index, 1);
       saveDevices();
       hideModals();
       showDeviceList();
-      showToast('🗑️ Urządzenie usunięte');
+      showToast('🗑️ Usunięto');
     }
     
     // ============================================
@@ -677,31 +948,20 @@
     // ============================================
     renderDevices();
     setTimeout(checkDevicesStatus, 500);
-    
-    // Odświeżaj status co 30s
     setInterval(checkDevicesStatus, 30000);
     
-    // Obsługa przycisku wstecz w przeglądarce
     window.addEventListener('popstate', () => {
-      if (currentDevice) {
-        showDeviceList();
-      }
+      if (currentDevice) showDeviceList();
     });
     
-    // Dodaj stan do historii gdy otwierasz urządzenie
     const originalOpenDevice = openDevice;
     openDevice = function(index) {
       history.pushState({device: index}, '');
       originalOpenDevice(index);
     };
     
-    // Rejestracja Service Worker dla PWA
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js')
-          .then(reg => console.log('SW registered'))
-          .catch(err => console.log('SW registration failed'));
-      });
+      navigator.serviceWorker.register('sw.js').catch(() => {});
     }
   </script>
 </body>
