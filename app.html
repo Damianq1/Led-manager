@@ -8,6 +8,9 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="description" content="Sterowanie oświetleniem LED ESP32">
   <meta name="mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💡</text></svg>">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' fill='%231a1a2e'/><circle cx='96' cy='82' r='45' fill='%23fbbf24'/><circle cx='96' cy='75' r='30' fill='white'/><rect x='81' y='120' width='30' height='22' rx='3' fill='%23374151'/></svg>">
   <title>LED Manager</title>
   <style>
     *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -691,6 +694,15 @@
       history.pushState({device: index}, '');
       originalOpenDevice(index);
     };
+    
+    // Rejestracja Service Worker dla PWA
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then(reg => console.log('SW registered'))
+          .catch(err => console.log('SW registration failed'));
+      });
+    }
   </script>
 </body>
 </html>
