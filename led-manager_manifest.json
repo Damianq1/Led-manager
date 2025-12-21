@@ -1,0 +1,26 @@
+{
+  "name": "LED Manager",
+  "short_name": "LED",
+  "description": "Sterowanie oświetleniem LED ESP32",
+  "start_url": "./app.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#1a1a2e",
+  "theme_color": "#1a1a2e",
+  "orientation": "portrait",
+  "categories": ["utilities", "lifestyle"],
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' fill='%231a1a2e'/><circle cx='256' cy='220' r='120' fill='%23fbbf24'/><circle cx='256' cy='200' r='80' fill='white'/><rect x='216' y='320' width='80' height='60' rx='8' fill='%23374151'/></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' fill='%231a1a2e'/><circle cx='96' cy='82' r='45' fill='%23fbbf24'/><circle cx='96' cy='75' r='30' fill='white'/><rect x='81' y='120' width='30' height='22' rx='3' fill='%23374151'/></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
