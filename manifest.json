@@ -2,7 +2,7 @@
   "name": "LED Manager",
   "short_name": "LED",
   "description": "Sterowanie oświetleniem LED ESP32",
-  "start_url": ""https://damianq1.github.io/Led-manager/app.html",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#1a1a2e",
@@ -11,7 +11,7 @@
   "categories": ["utilities"],
   "icons": [
     {
-      "src": "icon-512.png",
+      "src": "icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
