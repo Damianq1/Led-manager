@@ -1,4 +1,4 @@
-const CACHE_NAME = 'led-manager-v3';
+const CACHE_NAME = 'led-manager-v4';
 const urlsToCache = [
   './app.html',
   './manifest.json'
