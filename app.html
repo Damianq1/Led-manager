@@ -32,10 +32,9 @@
     .device-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px}
     .device-card.online::before{background:#22c55e}
     .device-card.offline::before{background:#ef4444}
-    .device-card.locked::after{content:'🔒';position:absolute;right:16px;top:50%;transform:translateY(-50%);font-size:1.2rem}
     .device-card:active{transform:scale(0.98);background:rgba(55,65,81,1)}
     
-    .device-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;padding-right:30px}
+    .device-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
     .device-name{font-size:1.1rem;font-weight:600}
     .device-status{font-size:0.7rem;padding:4px 10px;border-radius:20px;font-weight:500}
     .device-status.online{background:rgba(34,197,94,0.2);color:#22c55e}
@@ -71,6 +70,7 @@
     .btn-danger{background:#ef4444;color:#fff}
     .btn-secondary{background:#374151;color:#fff}
     .btn-success{background:#22c55e;color:#fff}
+    .btn-wifi{background:linear-gradient(135deg,#3b82f6,#60a5fa);color:#fff}
     
     .control-panel{padding:20px;padding-bottom:40px}
     .back-btn{background:none;border:none;color:#fbbf24;font-size:1rem;cursor:pointer;display:flex;align-items:center;gap:8px;padding:10px 0;font-weight:500}
@@ -80,7 +80,6 @@
     .control-header h2{font-size:1.5rem;margin-bottom:4px}
     .control-header .ip{color:#9ca3af;font-size:0.9rem}
     .control-header .room{color:#fbbf24;font-size:0.85rem;margin-top:4px}
-    .control-header .secure{color:#22c55e;font-size:0.75rem;margin-top:8px}
     
     .control-card{background:rgba(55,65,81,0.8);border-radius:20px;padding:20px;margin-bottom:16px}
     .control-title{color:#9ca3af;font-size:0.8rem;margin-bottom:14px;text-transform:uppercase;letter-spacing:1px}
@@ -109,32 +108,16 @@
     .warm-slider{background:linear-gradient(to right,#374151,#ffb860)!important}
     
     .anim-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    .anim-item{position:relative}
-    .anim-btn{width:100%;padding:14px 10px;border-radius:14px;border:2px solid #4b5563;background:rgba(75,85,99,0.5);color:#fff;cursor:pointer;font-size:0.85rem;transition:all 0.2s;text-align:center}
+    .anim-btn{padding:14px 10px;border-radius:14px;border:2px solid #4b5563;background:rgba(75,85,99,0.5);color:#fff;cursor:pointer;font-size:0.85rem;transition:all 0.2s;text-align:center}
     .anim-btn:active{transform:scale(0.97)}
     .anim-btn.sel{border-color:#fbbf24;background:rgba(251,191,36,0.2)}
-    .anim-btn.custom{border-style:dashed}
     
-    .anim-repeats{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px}
-    .anim-repeats button{width:28px;height:28px;border-radius:50%;border:none;background:#374151;color:#fff;font-size:1rem;cursor:pointer}
-    .anim-repeats button:active{background:#4b5563}
-    .anim-repeats span{min-width:24px;text-align:center;font-size:0.9rem}
+    .wifi-section{margin-top:20px;padding-top:20px;border-top:1px solid #374151}
+    .wifi-status{display:flex;align-items:center;gap:10px;padding:12px;background:rgba(0,0,0,0.2);border-radius:10px;margin-bottom:12px}
+    .wifi-status.connected{color:#22c55e}
+    .wifi-status.ap-only{color:#fbbf24}
     
-    .custom-settings{background:rgba(251,191,36,0.1);border:1px solid #fbbf24;border-radius:12px;padding:16px;margin-top:16px;display:none}
-    .custom-settings.show{display:block}
-    .custom-settings .control-title{color:#fbbf24;margin-bottom:16px}
-    
-    .pattern-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
-    .pattern-btn{padding:10px 6px;border-radius:10px;border:2px solid #4b5563;background:rgba(75,85,99,0.5);color:#fff;cursor:pointer;font-size:0.75rem;text-align:center}
-    .pattern-btn.sel{border-color:#fbbf24;background:rgba(251,191,36,0.2)}
-    
-    .direction-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
-    .dir-btn{padding:10px 4px;border-radius:10px;border:2px solid #4b5563;background:rgba(75,85,99,0.5);color:#fff;cursor:pointer;font-size:1.2rem;text-align:center}
-    .dir-btn.sel{border-color:#fbbf24;background:rgba(251,191,36,0.2)}
-    
-    .preview-btn{background:linear-gradient(135deg,#8b5cf6,#a78bfa);margin-top:12px}
-    
-    .scan-results{max-height:200px;overflow-y:auto;margin-top:16px}
+    .scan-results{max-height:200px;overflow-y:auto;margin-top:12px}
     .scan-item{padding:14px;background:#111827;border-radius:12px;margin-bottom:10px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border:2px solid transparent;transition:all 0.2s}
     .scan-item:active{background:#1f2937;border-color:#fbbf24}
     
@@ -149,7 +132,11 @@
     .conn-status{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:rgba(239,68,68,0.9);color:#fff;padding:10px 20px;border-radius:10px;font-size:0.85rem;z-index:150;display:none}
     .conn-status.show{display:block}
     
-    .code-input{font-family:monospace;letter-spacing:4px;text-align:center;font-size:1.2rem!important}
+    .info-box{background:rgba(59,130,246,0.2);border:1px solid #3b82f6;border-radius:12px;padding:16px;margin-bottom:20px}
+    .info-box h3{color:#60a5fa;font-size:0.9rem;margin-bottom:8px}
+    .info-box p{color:#9ca3af;font-size:0.85rem;line-height:1.5}
+    .info-box ol{color:#9ca3af;font-size:0.85rem;padding-left:20px;margin-top:8px}
+    .info-box li{margin:4px 0}
   </style>
 </head>
 <body>
@@ -183,7 +170,6 @@
           <h2 id="ctrlName">-</h2>
           <div class="room" id="ctrlRoom">-</div>
           <div class="ip" id="ctrlIp">-</div>
-          <div class="secure">🔒 Połączenie zabezpieczone</div>
         </div>
         
         <div class="control-card">
@@ -222,83 +208,20 @@
         <div class="control-card">
           <div class="control-title">Animacja startowa</div>
           <div class="anim-grid">
-            <div class="anim-item">
-              <button class="anim-btn" data-a="0" onclick="selectAnim(this)">🐍 Wąż</button>
-              <div class="anim-repeats">
-                <button onclick="changeRepeats(0,-1)">−</button>
-                <span id="rep0">1</span>
-                <button onclick="changeRepeats(0,1)">+</button>
-              </div>
-            </div>
-            <div class="anim-item">
-              <button class="anim-btn" data-a="1" onclick="selectAnim(this)">⚡ Błyskawica</button>
-              <div class="anim-repeats">
-                <button onclick="changeRepeats(1,-1)">−</button>
-                <span id="rep1">1</span>
-                <button onclick="changeRepeats(1,1)">+</button>
-              </div>
-            </div>
-            <div class="anim-item">
-              <button class="anim-btn" data-a="2" onclick="selectAnim(this)">🌅 Wschód</button>
-              <div class="anim-repeats">
-                <button onclick="changeRepeats(2,-1)">−</button>
-                <span id="rep2">1</span>
-                <button onclick="changeRepeats(2,1)">+</button>
-              </div>
-            </div>
-            <div class="anim-item">
-              <button class="anim-btn" data-a="3" onclick="selectAnim(this)">💫 Centrum</button>
-              <div class="anim-repeats">
-                <button onclick="changeRepeats(3,-1)">−</button>
-                <span id="rep3">1</span>
-                <button onclick="changeRepeats(3,1)">+</button>
-              </div>
-            </div>
-            <div class="anim-item" style="grid-column: span 2">
-              <button class="anim-btn custom" data-a="4" onclick="selectAnim(this)">🎨 Własna animacja</button>
-              <div class="anim-repeats">
-                <button onclick="changeRepeats(4,-1)">−</button>
-                <span id="rep4">1</span>
-                <button onclick="changeRepeats(4,1)">+</button>
-              </div>
-            </div>
+            <button class="anim-btn" data-a="0" onclick="selectAnim(this)">🐍 Wąż</button>
+            <button class="anim-btn" data-a="1" onclick="selectAnim(this)">⚡ Błyskawica</button>
+            <button class="anim-btn" data-a="2" onclick="selectAnim(this)">🌅 Wschód</button>
+            <button class="anim-btn" data-a="3" onclick="selectAnim(this)">💫 Centrum</button>
           </div>
-          
-          <!-- Ustawienia własnej animacji -->
-          <div class="custom-settings" id="customSettings">
-            <div class="control-title">🎨 Edytor własnej animacji</div>
-            
-            <div class="slider-label"><span>Wzór</span></div>
-            <div class="pattern-grid">
-              <button class="pattern-btn sel" data-p="0" onclick="selectPattern(this)">🐍<br>Wąż</button>
-              <button class="pattern-btn" data-p="1" onclick="selectPattern(this)">🌊<br>Fala</button>
-              <button class="pattern-btn" data-p="2" onclick="selectPattern(this)">🎲<br>Losowy</button>
-              <button class="pattern-btn" data-p="3" onclick="selectPattern(this)">🏓<br>Ping-pong</button>
-              <button class="pattern-btn" data-p="4" onclick="selectPattern(this)">📊<br>Segmenty</button>
-            </div>
-            
-            <div class="slider-label"><span>Kierunek</span></div>
-            <div class="direction-grid">
-              <button class="dir-btn sel" data-d="0" onclick="selectDirection(this)">➡️</button>
-              <button class="dir-btn" data-d="1" onclick="selectDirection(this)">⬅️</button>
-              <button class="dir-btn" data-d="2" onclick="selectDirection(this)">↔️</button>
-              <button class="dir-btn" data-d="3" onclick="selectDirection(this)">⬌</button>
-            </div>
-            
-            <div class="slider-group">
-              <div class="slider-label"><span>🚀 Prędkość</span><span id="speedVal">5</span></div>
-              <input type="range" min="1" max="10" value="5" id="speedSlider" oninput="updateSpeed()">
-            </div>
-            
-            <div class="slider-group" id="segmentsGroup">
-              <div class="slider-label"><span>📊 Ilość segmentów</span><span id="segVal">4</span></div>
-              <input type="range" min="2" max="20" value="4" id="segSlider" oninput="updateSegments()">
-            </div>
-            
-            <button class="btn preview-btn" onclick="previewAnimation()">▶️ Podgląd animacji</button>
+        </div>
+        
+        <!-- Sekcja WiFi -->
+        <div class="control-card">
+          <div class="control-title">📶 Konfiguracja WiFi</div>
+          <div class="wifi-status" id="wifiStatusBox">
+            <span>Sprawdzanie...</span>
           </div>
-          
-          <button class="btn btn-primary" onclick="saveAnimation()" style="margin-top:16px">💾 Zapisz animację</button>
+          <button class="btn btn-wifi" onclick="showWifiModal()">⚙️ Skonfiguruj WiFi domowe</button>
         </div>
       </div>
     </div>
@@ -312,6 +235,15 @@
         <button class="modal-close" onclick="hideModals()">×</button>
       </div>
       <div class="modal-body">
+        <div class="info-box">
+          <h3>📱 Jak dodać urządzenie?</h3>
+          <ol>
+            <li>Połącz telefon z siecią WiFi urządzenia (np. "Sypialnia LED")</li>
+            <li>Hasło = nazwa sieci (np. <strong>Sypialnia LED</strong>)</li>
+            <li>Wróć tutaj i kliknij "Skanuj"</li>
+          </ol>
+        </div>
+        
         <div class="form-group">
           <label>Nazwa urządzenia</label>
           <input type="text" id="addName" placeholder="np. Lampa w sypialni">
@@ -331,12 +263,8 @@
         </div>
         <div class="form-group">
           <label>Adres IP urządzenia</label>
-          <input type="text" id="addIp" placeholder="192.168.1.100" inputmode="url">
-        </div>
-        <div class="form-group">
-          <label>🔐 Hasło Access Point (opcjonalne)</label>
-          <input type="text" id="addApPass" placeholder="LED12345" autocomplete="off">
-          <div class="hint">Hasło do sieci WiFi urządzenia (domyślnie: LED12345)</div>
+          <input type="text" id="addIp" placeholder="192.168.4.1" value="192.168.4.1" inputmode="url">
+          <div class="hint">Domyślny adres AP to 192.168.4.1</div>
         </div>
         
         <button class="btn btn-secondary" onclick="scanDevices()">🔍 Skanuj sieć</button>
@@ -376,10 +304,6 @@
           <label>Adres IP</label>
           <input type="text" id="editIp" inputmode="url">
         </div>
-        <div class="form-group">
-          <label>🔐 Hasło Access Point</label>
-          <input type="text" id="editApPass" placeholder="LED12345" autocomplete="off">
-        </div>
         
         <button class="btn btn-primary" onclick="saveDevice()">💾 Zapisz zmiany</button>
         <button class="btn btn-danger" onclick="deleteDevice()" style="margin-top:12px">🗑️ Usuń urządzenie</button>
@@ -387,7 +311,7 @@
     </div>
   </div>
   
-  <!-- Modal konfiguracji WiFi urządzenia -->
+  <!-- Modal konfiguracji WiFi -->
   <div class="modal-overlay" id="wifiModal" onclick="if(event.target===this)hideModals()">
     <div class="modal">
       <div class="modal-header">
@@ -395,19 +319,28 @@
         <button class="modal-close" onclick="hideModals()">×</button>
       </div>
       <div class="modal-body">
-        <p style="color:#9ca3af;margin-bottom:20px;text-align:center">
-          Skonfiguruj sieć WiFi dla urządzenia.<br>Po połączeniu będziesz mógł sterować przez sieć domową.
-        </p>
-        <div class="form-group">
+        <div class="info-box">
+          <h3>ℹ️ Po co to?</h3>
+          <p>Skonfiguruj WiFi domowe, aby sterować urządzeniem bez łączenia się z jego Access Point.</p>
+        </div>
+        
+        <button class="btn btn-secondary" onclick="scanWifiNetworks()">🔍 Skanuj dostępne sieci</button>
+        <div id="wifiScanResults"></div>
+        
+        <div class="form-group" style="margin-top:16px">
           <label>Nazwa sieci WiFi (SSID)</label>
-          <input type="text" id="wifiSSID" placeholder="Nazwa Twojej sieci">
+          <input type="text" id="wifiSSID" placeholder="Nazwa Twojej sieci domowej">
         </div>
         <div class="form-group">
           <label>Hasło WiFi</label>
           <input type="password" id="wifiPass" placeholder="Hasło do sieci">
         </div>
-        <button class="btn btn-primary" onclick="sendWifiConfig()">📡 Połącz urządzenie z WiFi</button>
+        
+        <button class="btn btn-success" onclick="sendWifiConfig()">📡 Połącz urządzenie z WiFi</button>
+        
         <div id="wifiResult" style="margin-top:16px;text-align:center"></div>
+        
+        <button class="btn btn-danger" onclick="disconnectWifi()" style="margin-top:20px">🔌 Rozłącz WiFi (tylko AP)</button>
       </div>
     </div>
   </div>
@@ -422,14 +355,6 @@
     let devices = JSON.parse(localStorage.getItem('ledDevices') || '[]');
     let currentDevice = null;
     let isOn = true;
-    
-    // Animacje - stan
-    let animationType = 0;
-    let animationRepeats = [1, 1, 1, 1, 1]; // dla każdej animacji osobno
-    let customPattern = 0;
-    let customSpeed = 5;
-    let customDirection = 0;
-    let customSegments = 4;
     
     function saveDevices() {
       localStorage.setItem('ledDevices', JSON.stringify(devices));
@@ -449,25 +374,30 @@
       document.getElementById('connStatus').classList.toggle('show', show);
     }
     
+    function $(id) { return document.getElementById(id); }
+    
     // ============================================
-    // HTTP - proste fetch bez autoryzacji
+    // HTTP
     // ============================================
-    function deviceFetch(url) {
-      return fetch(url, { signal: AbortSignal.timeout(5000) });
+    function deviceFetch(endpoint) {
+      if (!currentDevice) return Promise.reject('No device');
+      return fetch(`http://${currentDevice.ip}${endpoint}`, { 
+        signal: AbortSignal.timeout(5000) 
+      });
     }
     
     // ============================================
     // DEVICE LIST
     // ============================================
     function renderDevices() {
-      const container = document.getElementById('devicesContainer');
+      const container = $('devicesContainer');
       
       if (devices.length === 0) {
         container.innerHTML = `
           <div class="empty-state">
             <div class="icon">💡</div>
             <h2>Brak urządzeń</h2>
-            <p>Dodaj swoje pierwsze urządzenie LED</p>
+            <p>Połącz się z siecią WiFi urządzenia<br>(np. "Sypialnia LED") i dodaj je tutaj</p>
             <button onclick="showAddModal()">+ Dodaj urządzenie</button>
           </div>
         `;
@@ -485,7 +415,7 @@
         html += `<div class="section-title">${room}</div>`;
         rooms[room].forEach(d => {
           html += `
-            <div class="device-card ${d.online ? 'online' : 'offline'} ${d.code ? 'locked' : ''}" onclick="openDevice(${d.index})">
+            <div class="device-card ${d.online ? 'online' : 'offline'}" onclick="openDevice(${d.index})">
               <div class="device-header">
                 <span class="device-name">${d.name}</span>
                 <span class="device-status ${d.online ? 'online' : 'offline'}">${d.online ? '● Online' : '○ Offline'}</span>
@@ -503,20 +433,18 @@
     
     function checkDevicesStatus() {
       devices.forEach((d, i) => {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 3000);
-        
-        fetch(`http://${d.ip}/discover`, { signal: controller.signal })
+        fetch(`http://${d.ip}/status`, { signal: AbortSignal.timeout(3000) })
           .then(r => r.json())
           .then(data => {
             devices[i].online = true;
+            devices[i].wifiConnected = data.wifiConnected;
+            devices[i].wifiIP = data.wifiIP;
             renderDevices();
           })
           .catch(() => {
             devices[i].online = false;
             renderDevices();
-          })
-          .finally(() => clearTimeout(timeout));
+          });
       });
     }
     
@@ -529,11 +457,10 @@
     // ADD DEVICE
     // ============================================
     function showAddModal() {
-      document.getElementById('addName').value = '';
-      document.getElementById('addIp').value = '192.168.1.1';
-      document.getElementById('addCode').value = 'LED1234';
-      document.getElementById('scanResults').innerHTML = '';
-      document.getElementById('addModal').classList.add('show');
+      $('addName').value = '';
+      $('addIp').value = '192.168.4.1';
+      $('scanResults').innerHTML = '';
+      $('addModal').classList.add('show');
     }
     
     function hideModals() {
@@ -541,13 +468,12 @@
     }
     
     function addDevice() {
-      const name = document.getElementById('addName').value.trim();
-      const room = document.getElementById('addRoom').value;
-      const ip = document.getElementById('addIp').value.trim();
-      const apPass = document.getElementById('addApPass').value.trim();
+      const name = $('addName').value.trim() || 'Nowe urządzenie';
+      const room = $('addRoom').value;
+      const ip = $('addIp').value.trim();
       
-      if (!name || !ip) {
-        showToast('Wypełnij nazwę i IP', true);
+      if (!ip) {
+        showToast('Wpisz adres IP', true);
         return;
       }
       
@@ -557,15 +483,13 @@
       }
       
       // Sprawdź czy urządzenie odpowiada
-      fetch(`http://${ip}/discover`, { signal: AbortSignal.timeout(5000) })
+      fetch(`http://${ip}/status`, { signal: AbortSignal.timeout(5000) })
         .then(r => r.json())
         .then(data => {
           devices.push({ 
-            name: name || data.name, 
+            name: name || data.name || 'LED', 
             room, 
             ip, 
-            apPassword: apPass,
-            mac: data.mac,
             online: true 
           });
           saveDevices();
@@ -575,7 +499,7 @@
         })
         .catch(() => {
           // Dodaj nawet offline
-          devices.push({ name, room, ip, apPassword: apPass, online: false });
+          devices.push({ name, room, ip, online: false });
           saveDevices();
           hideModals();
           renderDevices();
@@ -584,14 +508,14 @@
     }
     
     function scanDevices() {
-      const results = document.getElementById('scanResults');
+      const results = $('scanResults');
       results.innerHTML = '<div class="loading"><div class="spinner"></div>Szukam urządzeń...</div>';
       
-      const ipsToScan = [];
-      for (let subnet = 1; subnet <= 10; subnet++) {
-        ipsToScan.push(`192.168.${subnet}.1`);
-      }
-      for (let i = 1; i <= 254; i++) {
+      // Skanuj typowe adresy AP
+      const ipsToScan = ['192.168.4.1'];
+      
+      // Dodaj zakres sieci lokalnej
+      for (let i = 1; i <= 20; i++) {
         ipsToScan.push(`192.168.1.${i}`);
         ipsToScan.push(`192.168.0.${i}`);
       }
@@ -600,19 +524,16 @@
       let checked = 0;
       
       ipsToScan.forEach(ip => {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 1000);
-        
-        fetch(`http://${ip}/discover`, { signal: controller.signal })
+        fetch(`http://${ip}/discover`, { signal: AbortSignal.timeout(2000) })
           .then(r => r.json())
           .then(data => {
-            if (data.type === 'led-controller') {
+            if (data.name) {
               found.push({ ip, name: data.name });
               results.innerHTML = '<div class="scan-results">' + 
                 found.map(f => `
                   <div class="scan-item" onclick="selectScanResult('${f.ip}', '${f.name}')">
-                    <span>💡 ${f.name} (${f.ip})</span>
-                    <span style="color:#22c55e">✓</span>
+                    <span>💡 ${f.name}</span>
+                    <span style="color:#22c55e">${f.ip}</span>
                   </div>
                 `).join('') +
               '</div>';
@@ -620,19 +541,18 @@
           })
           .catch(() => {})
           .finally(() => {
-            clearTimeout(timeout);
             checked++;
             if (checked === ipsToScan.length && found.length === 0) {
-              results.innerHTML = '<div class="loading" style="color:#ef4444">Nie znaleziono urządzeń</div>';
+              results.innerHTML = '<div class="loading" style="color:#ef4444">Nie znaleziono urządzeń.<br>Upewnij się, że jesteś połączony z siecią urządzenia.</div>';
             }
           });
       });
     }
     
     function selectScanResult(ip, name) {
-      document.getElementById('addIp').value = ip;
-      if (!document.getElementById('addName').value) {
-        document.getElementById('addName').value = name;
+      $('addIp').value = ip;
+      if (!$('addName').value) {
+        $('addName').value = name;
       }
       showToast('Wybrano: ' + name);
     }
@@ -643,21 +563,20 @@
     function openDevice(index) {
       currentDevice = { ...devices[index], index };
       
-      document.getElementById('deviceList').style.display = 'none';
-      document.getElementById('controlPanel').style.display = 'block';
+      $('deviceList').style.display = 'none';
+      $('controlPanel').style.display = 'block';
       
-      document.getElementById('ctrlName').textContent = currentDevice.name;
-      document.getElementById('ctrlRoom').textContent = currentDevice.room;
-      document.getElementById('ctrlIp').textContent = currentDevice.ip;
+      $('ctrlName').textContent = currentDevice.name;
+      $('ctrlRoom').textContent = currentDevice.room;
+      $('ctrlIp').textContent = currentDevice.ip;
       
       showConnStatus(false);
       fetchStatus();
     }
     
     function showDeviceList() {
-      document.getElementById('deviceList').style.display = 'block';
-      document.getElementById('controlPanel').style.display = 'none';
-      document.getElementById('customSettings').classList.remove('show');
+      $('deviceList').style.display = 'block';
+      $('controlPanel').style.display = 'none';
       showConnStatus(false);
       currentDevice = null;
       checkDevicesStatus();
@@ -666,7 +585,7 @@
     function fetchStatus() {
       if (!currentDevice) return;
       
-      deviceFetch(`http://${currentDevice.ip}/status`)
+      deviceFetch('/status')
         .then(r => {
           showConnStatus(false);
           return r.json();
@@ -674,123 +593,52 @@
         .then(d => {
           if (!d) return;
           
-          document.getElementById('coldSlider').value = d.cold;
-          document.getElementById('coldVal').textContent = d.cold;
-          document.getElementById('warmSlider').value = d.warm;
-          document.getElementById('warmVal').textContent = d.warm;
-          document.getElementById('brSlider').value = d.br;
-          document.getElementById('brVal').textContent = Math.round(d.br / 2.55) + '%';
+          $('coldSlider').value = d.cold;
+          $('coldVal').textContent = d.cold;
+          $('warmSlider').value = d.warm;
+          $('warmVal').textContent = d.warm;
+          $('brSlider').value = d.br;
+          $('brVal').textContent = Math.round(d.br / 2.55) + '%';
           
           isOn = d.on;
-          document.getElementById('pwrToggle').classList.toggle('on', isOn);
+          $('pwrToggle').classList.toggle('on', isOn);
           
-          // Animacje
-          animationType = d.animType || 0;
-          animationRepeats[animationType] = d.animRepeats || 1;
-          customPattern = d.customPattern || 0;
-          customSpeed = d.customSpeed || 5;
-          customDirection = d.customDirection || 0;
-          customSegments = d.customSegments || 4;
+          document.querySelectorAll('.anim-btn').forEach(b => {
+            b.classList.toggle('sel', b.dataset.a == d.anim);
+          });
           
-          updateAnimUI();
-        })
-        .catch(() => {
-          showConnStatus(true);
-          showToast('Brak połączenia', true);
-        })
-        .finally(() => clearTimeout(timeout));
-    }
-    
-    function updateAnimUI() {
-      // Zaznacz aktywną animację
-      document.querySelectorAll('.anim-btn').forEach(b => {
-        b.classList.toggle('sel', b.dataset.a == animationType);
-      });
-      
-      // Pokaż/ukryj ustawienia własnej animacji
-      document.getElementById('customSettings').classList.toggle('show', animationType == 4);
-      
-      // Aktualizuj powtórzenia
-      for (let i = 0; i < 5; i++) {
-        document.getElementById('rep' + i).textContent = animationRepeats[i];
-      }
-      
-      // Własna animacja - zaznaczenia
-      document.querySelectorAll('.pattern-btn').forEach(b => {
-        b.classList.toggle('sel', b.dataset.p == customPattern);
-      });
-      document.querySelectorAll('.dir-btn').forEach(b => {
-        b.classList.toggle('sel', b.dataset.d == customDirection);
-      });
-      document.getElementById('speedSlider').value = customSpeed;
-      document.getElementById('speedVal').textContent = customSpeed;
-      document.getElementById('segSlider').value = customSegments;
-      document.getElementById('segVal').textContent = customSegments;
-      
-      // Pokaż/ukryj segmenty (tylko dla wzoru segmenty)
-      document.getElementById('segmentsGroup').style.display = customPattern == 4 ? 'block' : 'none';
-    }
-    
-    function sendWifiConfig() {
-      const ssid = document.getElementById('wifiSSID').value.trim();
-      const pass = document.getElementById('wifiPass').value;
-      const result = document.getElementById('wifiResult');
-      
-      if (!ssid) {
-        showToast('Wpisz nazwę sieci', true);
-        return;
-      }
-      
-      result.innerHTML = '<div class="spinner" style="margin:0 auto"></div> Łączenie...';
-      
-      deviceFetch(`http://${currentDevice.ip}/wifi/save?ssid=${encodeURIComponent(ssid)}&pass=${encodeURIComponent(pass)}`)
-        .then(r => r.json())
-        .then(data => {
-          if (data.success) {
-            result.innerHTML = '<div style="color:#22c55e">✅ Połączono! Nowe IP: ' + data.ip + '</div>';
+          // Status WiFi
+          const wifiBox = $('wifiStatusBox');
+          if (d.wifiConnected) {
+            wifiBox.className = 'wifi-status connected';
+            wifiBox.innerHTML = `✅ Połączono z: ${d.wifiSSID}<br>IP: ${d.wifiIP}`;
             
-            // Zaktualizuj IP urządzenia
-            devices[currentDevice.index].ip = data.ip;
-            currentDevice.ip = data.ip;
-            document.getElementById('ctrlIp').textContent = data.ip;
-            saveDevices();
-            
-            showToast('✅ WiFi skonfigurowane!');
-            setTimeout(() => {
-              hideModals();
-              fetchStatus();
-            }, 2000);
+            // Zaktualizuj IP urządzenia jeśli się zmieniło
+            if (d.wifiIP && d.wifiIP !== currentDevice.ip && d.wifiIP !== '0.0.0.0') {
+              devices[currentDevice.index].wifiIP = d.wifiIP;
+              saveDevices();
+            }
           } else {
-            result.innerHTML = '<div style="color:#ef4444">❌ ' + data.error + '</div>';
+            wifiBox.className = 'wifi-status ap-only';
+            wifiBox.innerHTML = `📡 Tylko Access Point<br>IP: ${d.apIP}`;
           }
         })
         .catch(() => {
-          result.innerHTML = '<div style="color:#ef4444">❌ Błąd połączenia z urządzeniem</div>';
+          showConnStatus(true);
         });
-    }
-    
-    function showWifiModal() {
-      document.getElementById('wifiSSID').value = '';
-      document.getElementById('wifiPass').value = '';
-      document.getElementById('wifiResult').innerHTML = '';
-      document.getElementById('wifiModal').classList.add('show');
     }
     
     function send(endpoint) {
       if (!currentDevice) return;
       
-      deviceFetch(`http://${currentDevice.ip}${endpoint}`)
-        .then(r => {
-          showConnStatus(false);
-        })
-        .catch(() => {
-          showConnStatus(true);
-        });
+      fetch(`http://${currentDevice.ip}${endpoint}`, { signal: AbortSignal.timeout(5000) })
+        .then(() => showConnStatus(false))
+        .catch(() => showConnStatus(true));
     }
     
     function togglePower() {
       isOn = !isOn;
-      document.getElementById('pwrToggle').classList.toggle('on', isOn);
+      $('pwrToggle').classList.toggle('on', isOn);
       send('/power?state=' + (isOn ? 1 : 0));
     }
     
@@ -798,106 +646,139 @@
       document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('sel'));
       btn.classList.add('sel');
       
-      document.getElementById('coldSlider').value = btn.dataset.c;
-      document.getElementById('warmSlider').value = btn.dataset.w;
-      document.getElementById('coldVal').textContent = btn.dataset.c;
-      document.getElementById('warmVal').textContent = btn.dataset.w;
+      $('coldSlider').value = btn.dataset.c;
+      $('warmSlider').value = btn.dataset.w;
+      $('coldVal').textContent = btn.dataset.c;
+      $('warmVal').textContent = btn.dataset.w;
       sendColor();
     }
     
     function updateCold() {
-      document.getElementById('coldVal').textContent = document.getElementById('coldSlider').value;
+      $('coldVal').textContent = $('coldSlider').value;
       document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('sel'));
     }
     
     function updateWarm() {
-      document.getElementById('warmVal').textContent = document.getElementById('warmSlider').value;
+      $('warmVal').textContent = $('warmSlider').value;
       document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('sel'));
     }
     
     function updateBr() {
-      document.getElementById('brVal').textContent = Math.round(document.getElementById('brSlider').value / 2.55) + '%';
+      $('brVal').textContent = Math.round($('brSlider').value / 2.55) + '%';
     }
     
     let colorDebounce = null;
     function sendColor() {
       clearTimeout(colorDebounce);
       colorDebounce = setTimeout(() => {
-        const cold = document.getElementById('coldSlider').value;
-        const warm = document.getElementById('warmSlider').value;
-        send('/color?cold=' + cold + '&warm=' + warm);
+        send('/color?cold=' + $('coldSlider').value + '&warm=' + $('warmSlider').value);
       }, 100);
     }
     
     function sendBrightness() {
-      send('/brightness?value=' + document.getElementById('brSlider').value);
+      send('/brightness?value=' + $('brSlider').value);
     }
     
-    // ============================================
-    // ANIMACJE
-    // ============================================
     function selectAnim(btn) {
-      animationType = parseInt(btn.dataset.a);
       document.querySelectorAll('.anim-btn').forEach(b => b.classList.remove('sel'));
       btn.classList.add('sel');
+      send('/animation?type=' + btn.dataset.a);
+    }
+    
+    // ============================================
+    // WIFI CONFIGURATION
+    // ============================================
+    function showWifiModal() {
+      $('wifiSSID').value = '';
+      $('wifiPass').value = '';
+      $('wifiScanResults').innerHTML = '';
+      $('wifiResult').innerHTML = '';
+      $('wifiModal').classList.add('show');
+    }
+    
+    function scanWifiNetworks() {
+      const results = $('wifiScanResults');
+      results.innerHTML = '<div class="loading"><div class="spinner"></div>Skanowanie sieci WiFi...</div>';
       
-      // Pokaż/ukryj ustawienia własnej animacji
-      document.getElementById('customSettings').classList.toggle('show', animationType == 4);
+      deviceFetch('/scan')
+        .then(r => r.json())
+        .then(networks => {
+          if (!networks || networks.length === 0) {
+            results.innerHTML = '<div class="loading">Nie znaleziono sieci WiFi</div>';
+            return;
+          }
+          results.innerHTML = '<div class="scan-results">' + 
+            networks.map(n => `
+              <div class="scan-item" onclick="selectWifiNetwork('${n.ssid}')">
+                <span>📶 ${n.ssid}</span>
+                <span style="color:#9ca3af">${n.rssi} dBm</span>
+              </div>
+            `).join('') +
+          '</div>';
+        })
+        .catch(() => {
+          results.innerHTML = '<div class="loading" style="color:#ef4444">Błąd skanowania</div>';
+        });
     }
     
-    function changeRepeats(animIndex, delta) {
-      animationRepeats[animIndex] = Math.max(1, Math.min(10, animationRepeats[animIndex] + delta));
-      document.getElementById('rep' + animIndex).textContent = animationRepeats[animIndex];
+    function selectWifiNetwork(ssid) {
+      $('wifiSSID').value = ssid;
+      $('wifiPass').focus();
+      showToast('Wybrano: ' + ssid);
     }
     
-    function selectPattern(btn) {
-      customPattern = parseInt(btn.dataset.p);
-      document.querySelectorAll('.pattern-btn').forEach(b => b.classList.remove('sel'));
-      btn.classList.add('sel');
+    function sendWifiConfig() {
+      const ssid = $('wifiSSID').value.trim();
+      const pass = $('wifiPass').value;
+      const result = $('wifiResult');
       
-      // Pokaż segmenty tylko dla wzoru segmenty
-      document.getElementById('segmentsGroup').style.display = customPattern == 4 ? 'block' : 'none';
-    }
-    
-    function selectDirection(btn) {
-      customDirection = parseInt(btn.dataset.d);
-      document.querySelectorAll('.dir-btn').forEach(b => b.classList.remove('sel'));
-      btn.classList.add('sel');
-    }
-    
-    function updateSpeed() {
-      customSpeed = parseInt(document.getElementById('speedSlider').value);
-      document.getElementById('speedVal').textContent = customSpeed;
-    }
-    
-    function updateSegments() {
-      customSegments = parseInt(document.getElementById('segSlider').value);
-      document.getElementById('segVal').textContent = customSegments;
-    }
-    
-    function previewAnimation() {
-      showToast('Uruchamiam podgląd...');
+      if (!ssid) {
+        showToast('Wpisz nazwę sieci', true);
+        return;
+      }
       
-      let url = '/preview?type=' + animationType +
-                '&repeats=' + animationRepeats[animationType] +
-                '&pattern=' + customPattern +
-                '&speed=' + customSpeed +
-                '&direction=' + customDirection +
-                '&segments=' + customSegments;
+      result.innerHTML = '<div class="spinner"></div> Łączenie z WiFi...';
       
-      send(url);
+      deviceFetch(`/wifi/save?ssid=${encodeURIComponent(ssid)}&pass=${encodeURIComponent(pass)}`)
+        .then(r => r.json())
+        .then(data => {
+          if (data.success) {
+            result.innerHTML = `<div style="color:#22c55e">✅ Połączono!<br>Nowe IP: <strong>${data.ip}</strong></div>`;
+            
+            // Zaktualizuj IP urządzenia
+            if (data.ip && data.ip !== '0.0.0.0') {
+              devices[currentDevice.index].wifiIP = data.ip;
+              // Opcjonalnie zmień główne IP na WiFi
+              // devices[currentDevice.index].ip = data.ip;
+              saveDevices();
+            }
+            
+            showToast('✅ WiFi skonfigurowane!');
+            setTimeout(() => {
+              hideModals();
+              fetchStatus();
+            }, 3000);
+          } else {
+            result.innerHTML = `<div style="color:#ef4444">❌ ${data.error || 'Nie można połączyć'}</div>`;
+          }
+        })
+        .catch(() => {
+          result.innerHTML = '<div style="color:#ef4444">❌ Błąd połączenia z urządzeniem</div>';
+        });
     }
     
-    function saveAnimation() {
-      let url = '/animation?type=' + animationType +
-                '&repeats=' + animationRepeats[animationType] +
-                '&pattern=' + customPattern +
-                '&speed=' + customSpeed +
-                '&direction=' + customDirection +
-                '&segments=' + customSegments;
+    function disconnectWifi() {
+      if (!confirm('Rozłączyć urządzenie z WiFi? Będzie dostępne tylko przez AP.')) return;
       
-      send(url);
-      showToast('💾 Animacja zapisana!');
+      deviceFetch('/wifi/disconnect')
+        .then(() => {
+          showToast('WiFi rozłączone');
+          hideModals();
+          fetchStatus();
+        })
+        .catch(() => {
+          showToast('Błąd', true);
+        });
     }
     
     // ============================================
@@ -905,32 +786,30 @@
     // ============================================
     function showEditModal() {
       if (!currentDevice) return;
-      document.getElementById('editName').value = currentDevice.name;
-      document.getElementById('editRoom').value = currentDevice.room;
-      document.getElementById('editIp').value = currentDevice.ip;
-      document.getElementById('editApPass').value = currentDevice.apPassword || '';
-      document.getElementById('editModal').classList.add('show');
+      $('editName').value = currentDevice.name;
+      $('editRoom').value = currentDevice.room;
+      $('editIp').value = currentDevice.ip;
+      $('editModal').classList.add('show');
     }
     
     function saveDevice() {
       if (!currentDevice) return;
       
-      const name = document.getElementById('editName').value.trim();
-      const room = document.getElementById('editRoom').value;
-      const ip = document.getElementById('editIp').value.trim();
-      const apPassword = document.getElementById('editApPass').value.trim();
+      const name = $('editName').value.trim();
+      const room = $('editRoom').value;
+      const ip = $('editIp').value.trim();
       
       if (!name || !ip) {
         showToast('Wypełnij nazwę i IP', true);
         return;
       }
       
-      devices[currentDevice.index] = { ...devices[currentDevice.index], name, room, ip, apPassword };
+      devices[currentDevice.index] = { ...devices[currentDevice.index], name, room, ip };
       currentDevice = { ...devices[currentDevice.index], index: currentDevice.index };
       
-      document.getElementById('ctrlName').textContent = name;
-      document.getElementById('ctrlRoom').textContent = room;
-      document.getElementById('ctrlIp').textContent = ip;
+      $('ctrlName').textContent = name;
+      $('ctrlRoom').textContent = room;
+      $('ctrlIp').textContent = ip;
       
       saveDevices();
       hideModals();
@@ -955,6 +834,7 @@
     setTimeout(checkDevicesStatus, 500);
     setInterval(checkDevicesStatus, 30000);
     
+    // Przycisk wstecz
     window.addEventListener('popstate', () => {
       if (currentDevice) showDeviceList();
     });
@@ -965,6 +845,7 @@
       originalOpenDevice(index);
     };
     
+    // Service Worker
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js').catch(() => {});
     }
