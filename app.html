@@ -112,11 +112,6 @@
     .anim-btn:active{transform:scale(0.97)}
     .anim-btn.sel{border-color:#fbbf24;background:rgba(251,191,36,0.2)}
     
-    .wifi-section{margin-top:20px;padding-top:20px;border-top:1px solid #374151}
-    .wifi-status{display:flex;align-items:center;gap:10px;padding:12px;background:rgba(0,0,0,0.2);border-radius:10px;margin-bottom:12px}
-    .wifi-status.connected{color:#22c55e}
-    .wifi-status.ap-only{color:#fbbf24}
-    
     .scan-results{max-height:200px;overflow-y:auto;margin-top:12px}
     .scan-item{padding:14px;background:#111827;border-radius:12px;margin-bottom:10px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border:2px solid transparent;transition:all 0.2s}
     .scan-item:active{background:#1f2937;border-color:#fbbf24}
@@ -214,15 +209,6 @@
             <button class="anim-btn" data-a="3" onclick="selectAnim(this)">💫 Centrum</button>
           </div>
         </div>
-        
-        <!-- Sekcja WiFi -->
-        <div class="control-card">
-          <div class="control-title">📶 Konfiguracja WiFi</div>
-          <div class="wifi-status" id="wifiStatusBox">
-            <span>Sprawdzanie...</span>
-          </div>
-          <button class="btn btn-wifi" onclick="showWifiModal()">⚙️ Skonfiguruj WiFi domowe</button>
-        </div>
       </div>
     </div>
   </div>
@@ -240,7 +226,7 @@
           <ol>
             <li>Połącz telefon z siecią WiFi urządzenia (np. "Sypialnia LED")</li>
             <li>Hasło = nazwa sieci (np. <strong>Sypialnia LED</strong>)</li>
-            <li>Wróć tutaj i kliknij "Skanuj"</li>
+            <li>Wróć tutaj i wpisz adres <strong>192.168.4.1</strong></li>
           </ol>
         </div>
         
@@ -266,9 +252,6 @@
           <input type="text" id="addIp" placeholder="192.168.4.1" value="192.168.4.1" inputmode="url">
           <div class="hint">Domyślny adres AP to 192.168.4.1</div>
         </div>
-        
-        <button class="btn btn-secondary" onclick="scanDevices()">🔍 Skanuj sieć</button>
-        <div id="scanResults"></div>
         
         <button class="btn btn-primary" onclick="addDevice()" style="margin-top:20px">✅ Dodaj urządzenie</button>
       </div>
@@ -311,40 +294,6 @@
     </div>
   </div>
   
-  <!-- Modal konfiguracji WiFi -->
-  <div class="modal-overlay" id="wifiModal" onclick="if(event.target===this)hideModals()">
-    <div class="modal">
-      <div class="modal-header">
-        <h2>📶 Konfiguracja WiFi</h2>
-        <button class="modal-close" onclick="hideModals()">×</button>
-      </div>
-      <div class="modal-body">
-        <div class="info-box">
-          <h3>ℹ️ Po co to?</h3>
-          <p>Skonfiguruj WiFi domowe, aby sterować urządzeniem bez łączenia się z jego Access Point.</p>
-        </div>
-        
-        <button class="btn btn-secondary" onclick="scanWifiNetworks()">🔍 Skanuj dostępne sieci</button>
-        <div id="wifiScanResults"></div>
-        
-        <div class="form-group" style="margin-top:16px">
-          <label>Nazwa sieci WiFi (SSID)</label>
-          <input type="text" id="wifiSSID" placeholder="Nazwa Twojej sieci domowej">
-        </div>
-        <div class="form-group">
-          <label>Hasło WiFi</label>
-          <input type="password" id="wifiPass" placeholder="Hasło do sieci">
-        </div>
-        
-        <button class="btn btn-success" onclick="sendWifiConfig()">📡 Połącz urządzenie z WiFi</button>
-        
-        <div id="wifiResult" style="margin-top:16px;text-align:center"></div>
-        
-        <button class="btn btn-danger" onclick="disconnectWifi()" style="margin-top:20px">🔌 Rozłącz WiFi (tylko AP)</button>
-      </div>
-    </div>
-  </div>
-  
   <div class="toast" id="toast"></div>
   <div class="conn-status" id="connStatus">⚠️ Brak połączenia z urządzeniem</div>
 
@@ -375,16 +324,6 @@
     }
     
     function $(id) { return document.getElementById(id); }
-    
-    // ============================================
-    // HTTP
-    // ============================================
-    function deviceFetch(endpoint) {
-      if (!currentDevice) return Promise.reject('No device');
-      return fetch(`http://${currentDevice.ip}${endpoint}`, { 
-        signal: AbortSignal.timeout(5000) 
-      });
-    }
     
     // ============================================
     // DEVICE LIST
@@ -437,8 +376,6 @@
           .then(r => r.json())
           .then(data => {
             devices[i].online = true;
-            devices[i].wifiConnected = data.wifiConnected;
-            devices[i].wifiIP = data.wifiIP;
             renderDevices();
           })
           .catch(() => {
@@ -459,7 +396,6 @@
     function showAddModal() {
       $('addName').value = '';
       $('addIp').value = '192.168.4.1';
-      $('scanResults').innerHTML = '';
       $('addModal').classList.add('show');
     }
     
@@ -482,79 +418,12 @@
         return;
       }
       
-      // Sprawdź czy urządzenie odpowiada
-      fetch(`http://${ip}/status`, { signal: AbortSignal.timeout(5000) })
-        .then(r => r.json())
-        .then(data => {
-          devices.push({ 
-            name: name || data.name || 'LED', 
-            room, 
-            ip, 
-            online: true 
-          });
-          saveDevices();
-          hideModals();
-          renderDevices();
-          showToast('✅ Urządzenie dodane!');
-        })
-        .catch(() => {
-          // Dodaj nawet offline
-          devices.push({ name, room, ip, online: false });
-          saveDevices();
-          hideModals();
-          renderDevices();
-          showToast('Dodano (sprawdź połączenie)', true);
-        });
-    }
-    
-    function scanDevices() {
-      const results = $('scanResults');
-      results.innerHTML = '<div class="loading"><div class="spinner"></div>Szukam urządzeń...</div>';
-      
-      // Skanuj typowe adresy AP
-      const ipsToScan = ['192.168.4.1'];
-      
-      // Dodaj zakres sieci lokalnej
-      for (let i = 1; i <= 20; i++) {
-        ipsToScan.push(`192.168.1.${i}`);
-        ipsToScan.push(`192.168.0.${i}`);
-      }
-      
-      let found = [];
-      let checked = 0;
-      
-      ipsToScan.forEach(ip => {
-        fetch(`http://${ip}/discover`, { signal: AbortSignal.timeout(2000) })
-          .then(r => r.json())
-          .then(data => {
-            if (data.name) {
-              found.push({ ip, name: data.name });
-              results.innerHTML = '<div class="scan-results">' + 
-                found.map(f => `
-                  <div class="scan-item" onclick="selectScanResult('${f.ip}', '${f.name}')">
-                    <span>💡 ${f.name}</span>
-                    <span style="color:#22c55e">${f.ip}</span>
-                  </div>
-                `).join('') +
-              '</div>';
-            }
-          })
-          .catch(() => {})
-          .finally(() => {
-            checked++;
-            if (checked === ipsToScan.length && found.length === 0) {
-              results.innerHTML = '<div class="loading" style="color:#ef4444">Nie znaleziono urządzeń.<br>Upewnij się, że jesteś połączony z siecią urządzenia.</div>';
-            }
-          });
-      });
-    }
-    
-    function selectScanResult(ip, name) {
-      $('addIp').value = ip;
-      if (!$('addName').value) {
-        $('addName').value = name;
-      }
-      showToast('Wybrano: ' + name);
+      devices.push({ name, room, ip, online: false });
+      saveDevices();
+      hideModals();
+      renderDevices();
+      checkDevicesStatus();
+      showToast('✅ Urządzenie dodane!');
     }
     
     // ============================================
@@ -585,7 +454,7 @@
     function fetchStatus() {
       if (!currentDevice) return;
       
-      deviceFetch('/status')
+      fetch(`http://${currentDevice.ip}/status`, { signal: AbortSignal.timeout(5000) })
         .then(r => {
           showConnStatus(false);
           return r.json();
@@ -602,26 +471,6 @@
           
           isOn = d.on;
           $('pwrToggle').classList.toggle('on', isOn);
-          
-          document.querySelectorAll('.anim-btn').forEach(b => {
-            b.classList.toggle('sel', b.dataset.a == d.anim);
-          });
-          
-          // Status WiFi
-          const wifiBox = $('wifiStatusBox');
-          if (d.wifiConnected) {
-            wifiBox.className = 'wifi-status connected';
-            wifiBox.innerHTML = `✅ Połączono z: ${d.wifiSSID}<br>IP: ${d.wifiIP}`;
-            
-            // Zaktualizuj IP urządzenia jeśli się zmieniło
-            if (d.wifiIP && d.wifiIP !== currentDevice.ip && d.wifiIP !== '0.0.0.0') {
-              devices[currentDevice.index].wifiIP = d.wifiIP;
-              saveDevices();
-            }
-          } else {
-            wifiBox.className = 'wifi-status ap-only';
-            wifiBox.innerHTML = `📡 Tylko Access Point<br>IP: ${d.apIP}`;
-          }
         })
         .catch(() => {
           showConnStatus(true);
@@ -683,102 +532,6 @@
       document.querySelectorAll('.anim-btn').forEach(b => b.classList.remove('sel'));
       btn.classList.add('sel');
       send('/animation?type=' + btn.dataset.a);
-    }
-    
-    // ============================================
-    // WIFI CONFIGURATION
-    // ============================================
-    function showWifiModal() {
-      $('wifiSSID').value = '';
-      $('wifiPass').value = '';
-      $('wifiScanResults').innerHTML = '';
-      $('wifiResult').innerHTML = '';
-      $('wifiModal').classList.add('show');
-    }
-    
-    function scanWifiNetworks() {
-      const results = $('wifiScanResults');
-      results.innerHTML = '<div class="loading"><div class="spinner"></div>Skanowanie sieci WiFi...</div>';
-      
-      deviceFetch('/scan')
-        .then(r => r.json())
-        .then(networks => {
-          if (!networks || networks.length === 0) {
-            results.innerHTML = '<div class="loading">Nie znaleziono sieci WiFi</div>';
-            return;
-          }
-          results.innerHTML = '<div class="scan-results">' + 
-            networks.map(n => `
-              <div class="scan-item" onclick="selectWifiNetwork('${n.ssid}')">
-                <span>📶 ${n.ssid}</span>
-                <span style="color:#9ca3af">${n.rssi} dBm</span>
-              </div>
-            `).join('') +
-          '</div>';
-        })
-        .catch(() => {
-          results.innerHTML = '<div class="loading" style="color:#ef4444">Błąd skanowania</div>';
-        });
-    }
-    
-    function selectWifiNetwork(ssid) {
-      $('wifiSSID').value = ssid;
-      $('wifiPass').focus();
-      showToast('Wybrano: ' + ssid);
-    }
-    
-    function sendWifiConfig() {
-      const ssid = $('wifiSSID').value.trim();
-      const pass = $('wifiPass').value;
-      const result = $('wifiResult');
-      
-      if (!ssid) {
-        showToast('Wpisz nazwę sieci', true);
-        return;
-      }
-      
-      result.innerHTML = '<div class="spinner"></div> Łączenie z WiFi...';
-      
-      deviceFetch(`/wifi/save?ssid=${encodeURIComponent(ssid)}&pass=${encodeURIComponent(pass)}`)
-        .then(r => r.json())
-        .then(data => {
-          if (data.success) {
-            result.innerHTML = `<div style="color:#22c55e">✅ Połączono!<br>Nowe IP: <strong>${data.ip}</strong></div>`;
-            
-            // Zaktualizuj IP urządzenia
-            if (data.ip && data.ip !== '0.0.0.0') {
-              devices[currentDevice.index].wifiIP = data.ip;
-              // Opcjonalnie zmień główne IP na WiFi
-              // devices[currentDevice.index].ip = data.ip;
-              saveDevices();
-            }
-            
-            showToast('✅ WiFi skonfigurowane!');
-            setTimeout(() => {
-              hideModals();
-              fetchStatus();
-            }, 3000);
-          } else {
-            result.innerHTML = `<div style="color:#ef4444">❌ ${data.error || 'Nie można połączyć'}</div>`;
-          }
-        })
-        .catch(() => {
-          result.innerHTML = '<div style="color:#ef4444">❌ Błąd połączenia z urządzeniem</div>';
-        });
-    }
-    
-    function disconnectWifi() {
-      if (!confirm('Rozłączyć urządzenie z WiFi? Będzie dostępne tylko przez AP.')) return;
-      
-      deviceFetch('/wifi/disconnect')
-        .then(() => {
-          showToast('WiFi rozłączone');
-          hideModals();
-          fetchStatus();
-        })
-        .catch(() => {
-          showToast('Błąd', true);
-        });
     }
     
     // ============================================

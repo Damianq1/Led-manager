@@ -1,4 +1,4 @@
-const CACHE_NAME = 'led-manager-v7';
+const CACHE_NAME = 'led-manager-v8';
 const urlsToCache = [
   './app.html',
   './manifest.json'
@@ -34,7 +34,10 @@ self.addEventListener('fetch', event => {
       url.includes('/color') || 
       url.includes('/brightness') ||
       url.includes('/animation') ||
-      url.includes('/status')) {
+      url.includes('/status') ||
+      url.includes('/discover') ||
+      url.includes('/scan') ||
+      url.includes('/wifi')) {
     event.respondWith(fetch(event.request));
     return;
   }
