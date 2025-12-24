@@ -1,10 +1,11 @@
-const CACHE_NAME = 'led-manager-v9';
+const CACHE_NAME = 'led-manager-v11';
 const urlsToCache = [
   './app.html',
   './manifest.json'
 ];
 
 self.addEventListener('install', event => {
+  console.log('SW: Installing v11...');
   self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -13,15 +14,19 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('activate', event => {
+  console.log('SW: Activating v11...');
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cacheName => {
           if (cacheName !== CACHE_NAME) {
+            console.log('SW: Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
       );
+    }).then(() => {
+      return self.clients.claim();
     })
   );
 });
@@ -29,11 +34,12 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   const url = event.request.url;
   
-  // Dla requestów do ESP32 - zawsze sieć (nie cachuj)
+  // Requesty do ESP32 - zawsze sieć
   if (url.includes('/power') || 
       url.includes('/color') || 
       url.includes('/brightness') ||
       url.includes('/animation') ||
+      url.includes('/preview') ||
       url.includes('/status') ||
       url.includes('/discover') ||
       url.includes('/scan') ||
@@ -42,7 +48,27 @@ self.addEventListener('fetch', event => {
     return;
   }
   
-  // Dla reszty - cache first, then network
+  // Dla app.html - sieć najpierw, potem cache
+  if (url.includes('app.html')) {
+    event.respondWith(
+      fetch(event.request)
+        .then(response => {
+          // Zapisz nową wersję do cache
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(event.request, responseClone);
+          });
+          return response;
+        })
+        .catch(() => {
+          // Offline - użyj cache
+          return caches.match(event.request);
+        })
+    );
+    return;
+  }
+  
+  // Reszta - cache first
   event.respondWith(
     caches.match(event.request)
       .then(response => {
