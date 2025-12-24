@@ -1,11 +1,11 @@
-const CACHE_NAME = 'led-manager-v11';
+const CACHE_NAME = 'led-manager-v12';
 const urlsToCache = [
   './app.html',
   './manifest.json'
 ];
 
 self.addEventListener('install', event => {
-  console.log('SW: Installing v11...');
+  console.log('SW: Installing v12...');
   self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -14,7 +14,7 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('activate', event => {
-  console.log('SW: Activating v11...');
+  console.log('SW: Activating v12...');
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
