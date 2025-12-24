@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#1a1a2e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="Sterowanie oświetleniem LED ESP32">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="full-screen" content="yes">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon-192.png">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <title>LED Manager</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{height:100%;overflow-x:hidden}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 100%);min-height:100vh;min-height:100dvh;color:#fff;padding-bottom:env(safe-area-inset-bottom)}
+    
+    .header{background:rgba(0,0,0,0.4);padding:16px 20px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,0.1)}
+    .header h1{font-size:1.3rem;display:flex;align-items:center;gap:10px}
+    .header-btns{display:flex;gap:10px}
+    .header-btn{background:linear-gradient(135deg,#f59e0b,#fbbf24);border:none;color:#000;width:44px;height:44px;border-radius:50%;font-size:1.4rem;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 15px rgba(251,191,36,0.3)}
+    .header-btn:active{transform:scale(0.95)}
+    .header-btn.secondary{background:#374151;color:#fff}
+    
+    .devices{padding:16px}
+    .section-title{font-size:0.8rem;color:#9ca3af;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;padding-left:4px}
+    
+    .device-card{background:rgba(55,65,81,0.8);border-radius:16px;padding:16px;margin-bottom:12px;cursor:pointer;transition:all 0.2s;border:2px solid transparent;position:relative;overflow:hidden}
+    .device-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px}
+    .device-card.online::before{background:#22c55e}
+    .device-card.offline::before{background:#ef4444}
+    .device-card:active{transform:scale(0.98);background:rgba(55,65,81,1)}
+    
+    .device-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+    .device-name{font-size:1.1rem;font-weight:600}
+    .device-status{font-size:0.7rem;padding:4px 10px;border-radius:20px;font-weight:500}
+    .device-status.online{background:rgba(34,197,94,0.2);color:#22c55e}
+    .device-status.offline{background:rgba(239,68,68,0.2);color:#ef4444}
+    .device-info{display:flex;justify-content:space-between;align-items:center}
+    .device-ip{color:#9ca3af;font-size:0.85rem}
+    
+    .empty-state{text-align:center;padding:80px 20px;color:#6b7280}
+    .empty-state .icon{font-size:5rem;margin-bottom:20px;opacity:0.5}
+    .empty-state h2{font-size:1.3rem;color:#9ca3af;margin-bottom:10px}
+    .empty-state p{margin-bottom:24px;line-height:1.6}
+    .empty-state button{background:linear-gradient(135deg,#f59e0b,#fbbf24);border:none;color:#000;padding:14px 32px;border-radius:14px;font-size:1rem;font-weight:600;cursor:pointer}
+    
+    .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:200;display:none;align-items:flex-end;justify-content:center}
+    .modal-overlay.show{display:flex}
+    .modal{background:#1f2937;border-radius:24px 24px 0 0;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;animation:slideUp 0.3s ease}
+    @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+    .modal-header{padding:20px;border-bottom:1px solid #374151;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:#1f2937;z-index:10}
+    .modal-header h2{font-size:1.2rem}
+    .modal-close{background:rgba(255,255,255,0.1);border:none;color:#9ca3af;width:36px;height:36px;border-radius:50%;font-size:1.5rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
+    .modal-body{padding:20px}
+    
+    .form-group{margin-bottom:20px}
+    .form-group label{display:block;margin-bottom:8px;color:#9ca3af;font-size:0.9rem}
+    .form-group input,.form-group select{width:100%;padding:14px 16px;border-radius:12px;border:2px solid #374151;background:#111827;color:#fff;font-size:1rem;transition:border-color 0.2s}
+    .form-group input:focus,.form-group select:focus{outline:none;border-color:#fbbf24}
+    .form-group input::placeholder{color:#6b7280}
+    .form-group .hint{font-size:0.75rem;color:#6b7280;margin-top:6px}
+    
+    .btn{width:100%;padding:16px;border-radius:14px;border:none;font-size:1rem;font-weight:600;cursor:pointer;margin-top:8px;transition:all 0.2s}
+    .btn:active{transform:scale(0.98)}
+    .btn-primary{background:linear-gradient(135deg,#f59e0b,#fbbf24);color:#000}
+    .btn-danger{background:#ef4444;color:#fff}
+    .btn-secondary{background:#374151;color:#fff}
+    .btn-success{background:#22c55e;color:#fff}
+    .btn-wifi{background:linear-gradient(135deg,#3b82f6,#60a5fa);color:#fff}
+    
+    .control-panel{padding:20px;padding-bottom:40px}
+    .back-btn{background:none;border:none;color:#fbbf24;font-size:1rem;cursor:pointer;display:flex;align-items:center;gap:8px;padding:10px 0;font-weight:500}
+    
+    .control-header{text-align:center;margin-bottom:28px;padding:20px}
+    .control-header .icon{font-size:4rem;margin-bottom:12px;filter:drop-shadow(0 0 20px rgba(251,191,36,0.5))}
+    .control-header h2{font-size:1.5rem;margin-bottom:4px}
+    .control-header .ip{color:#9ca3af;font-size:0.9rem}
+    .control-header .room{color:#fbbf24;font-size:0.85rem;margin-top:4px}
+    
+    .control-card{background:rgba(55,65,81,0.8);border-radius:20px;padding:20px;margin-bottom:16px}
+    .control-title{color:#9ca3af;font-size:0.8rem;margin-bottom:14px;text-transform:uppercase;letter-spacing:1px}
+    
+    .power-row{display:flex;justify-content:space-between;align-items:center}
+    .power-label{font-size:1.1rem;font-weight:500}
+    .toggle{width:64px;height:34px;background:#374151;border-radius:17px;position:relative;cursor:pointer;transition:0.3s}
+    .toggle.on{background:linear-gradient(135deg,#f59e0b,#fbbf24)}
+    .toggle::after{content:'';position:absolute;width:28px;height:28px;background:#fff;border-radius:50%;top:3px;left:3px;transition:0.3s;box-shadow:0 2px 8px rgba(0,0,0,0.3)}
+    .toggle.on::after{transform:translateX(30px)}
+    
+    .colors{display:flex;gap:14px;justify-content:center;margin-bottom:20px}
+    .color-btn{width:56px;height:56px;border-radius:50%;border:3px solid transparent;cursor:pointer;transition:all 0.2s;box-shadow:0 4px 15px rgba(0,0,0,0.3)}
+    .color-btn:active{transform:scale(0.95)}
+    .color-btn.sel{border-color:#fff;transform:scale(1.1)}
+    .c1{background:linear-gradient(135deg,#e8f4ff,#a8c8ff)}
+    .c2{background:linear-gradient(135deg,#fff8e8,#ffe0a0)}
+    .c3{background:linear-gradient(135deg,#ffe8c0,#ffb860)}
+    
+    .slider-group{margin-bottom:18px}
+    .slider-label{display:flex;justify-content:space-between;font-size:0.9rem;margin-bottom:10px}
+    .slider-label span:last-child{color:#fbbf24;font-weight:bold;font-size:1rem}
+    input[type=range]{width:100%;height:8px;border-radius:4px;-webkit-appearance:none;background:linear-gradient(to right,#374151,#fbbf24);outline:none}
+    input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;border-radius:50%;background:#fff;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,0.4)}
+    .cold-slider{background:linear-gradient(to right,#374151,#a8c8ff)!important}
+    .warm-slider{background:linear-gradient(to right,#374151,#ffb860)!important}
+    
+    .anim-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .anim-btn{padding:14px 10px;border-radius:14px;border:2px solid #4b5563;background:rgba(75,85,99,0.5);color:#fff;cursor:pointer;font-size:0.85rem;transition:all 0.2s;text-align:center}
+    .anim-btn:active{transform:scale(0.97)}
+    .anim-btn.sel{border-color:#fbbf24;background:rgba(251,191,36,0.2)}
+    
+    .scan-results{max-height:200px;overflow-y:auto;margin-top:12px}
+    .scan-item{padding:14px;background:#111827;border-radius:12px;margin-bottom:10px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border:2px solid transparent;transition:all 0.2s}
+    .scan-item:active{background:#1f2937;border-color:#fbbf24}
+    
+    .loading{text-align:center;padding:30px;color:#9ca3af}
+    .spinner{width:36px;height:36px;border:3px solid #374151;border-top-color:#fbbf24;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 12px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    
+    .toast{position:fixed;bottom:40px;left:50%;transform:translateX(-50%) translateY(100px);background:#22c55e;color:#fff;padding:14px 28px;border-radius:14px;z-index:300;opacity:0;transition:all 0.3s;font-weight:500;box-shadow:0 4px 20px rgba(0,0,0,0.3)}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+    .toast.error{background:#ef4444}
+    
+    .conn-status{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:rgba(239,68,68,0.9);color:#fff;padding:10px 20px;border-radius:10px;font-size:0.85rem;z-index:150;display:none}
+    .conn-status.show{display:block}
+    
+    .info-box{background:rgba(59,130,246,0.2);border:1px solid #3b82f6;border-radius:12px;padding:16px;margin-bottom:20px}
+    .info-box h3{color:#60a5fa;font-size:0.9rem;margin-bottom:8px}
+    .info-box p{color:#9ca3af;font-size:0.85rem;line-height:1.5}
+    .info-box ol{color:#9ca3af;font-size:0.85rem;padding-left:20px;margin-top:8px}
+    .info-box li{margin:4px 0}
+  </style>
+</head>
+<body>
+  <div id="app">
+    <!-- Lista urządzeń -->
+    <div id="deviceList">
+      <div class="header">
+        <h1>💡 LED Manager</h1>
+        <div class="header-btns">
+          <button class="header-btn secondary" onclick="refreshDevices()" title="Odśwież">🔄</button>
+          <button class="header-btn" onclick="showAddModal()" title="Dodaj">+</button>
+        </div>
+      </div>
+      
+      <div class="devices" id="devicesContainer"></div>
+    </div>
+    
+    <!-- Panel sterowania -->
+    <div id="controlPanel" style="display:none">
+      <div class="header">
+        <button class="back-btn" onclick="showDeviceList()">← Powrót</button>
+        <div class="header-btns">
+          <button class="header-btn secondary" onclick="fetchStatus()" title="Odśwież">🔄</button>
+          <button class="header-btn secondary" onclick="showEditModal()" title="Edytuj">✏️</button>
+        </div>
+      </div>
+      
+      <div class="control-panel">
+        <div class="control-header">
+          <div class="icon">💡</div>
+          <h2 id="ctrlName">-</h2>
+          <div class="room" id="ctrlRoom">-</div>
+          <div class="ip" id="ctrlIp">-</div>
+        </div>
+        
+        <div class="control-card">
+          <div class="power-row">
+            <span class="power-label">Zasilanie</span>
+            <div class="toggle" id="pwrToggle" onclick="togglePower()"></div>
+          </div>
+        </div>
+        
+        <div class="control-card">
+          <div class="control-title">Szybki wybór barwy</div>
+          <div class="colors">
+            <button class="color-btn c1" data-c="255" data-w="0" onclick="selectColor(this)" title="6500K Zimna"></button>
+            <button class="color-btn c2" data-c="180" data-w="100" onclick="selectColor(this)" title="4000K Neutralna"></button>
+            <button class="color-btn c3" data-c="0" data-w="255" onclick="selectColor(this)" title="3000K Ciepła"></button>
+          </div>
+          
+          <div class="control-title">Precyzyjne ustawienie</div>
+          <div class="slider-group">
+            <div class="slider-label"><span>❄️ Zimna biel</span><span id="coldVal">255</span></div>
+            <input type="range" min="0" max="255" value="255" class="cold-slider" id="coldSlider" oninput="updateCold()" onchange="sendColor()">
+          </div>
+          <div class="slider-group">
+            <div class="slider-label"><span>🔥 Ciepła biel</span><span id="warmVal">0</span></div>
+            <input type="range" min="0" max="255" value="0" class="warm-slider" id="warmSlider" oninput="updateWarm()" onchange="sendColor()">
+          </div>
+        </div>
+        
+        <div class="control-card">
+          <div class="slider-group">
+            <div class="slider-label"><span>☀️ Jasność</span><span id="brVal">100%</span></div>
+            <input type="range" min="0" max="255" value="255" id="brSlider" oninput="updateBr()" onchange="sendBrightness()">
+          </div>
+        </div>
+        
+        <div class="control-card">
+          <div class="control-title">Animacja startowa</div>
+          <div class="anim-grid">
+            <button class="anim-btn" data-a="0" onclick="selectAnim(this)">🐍 Wąż</button>
+            <button class="anim-btn" data-a="1" onclick="selectAnim(this)">⚡ Błyskawica</button>
+            <button class="anim-btn" data-a="2" onclick="selectAnim(this)">🌅 Wschód</button>
+            <button class="anim-btn" data-a="3" onclick="selectAnim(this)">💫 Centrum</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Modal dodawania -->
+  <div class="modal-overlay" id="addModal" onclick="if(event.target===this)hideModals()">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>➕ Dodaj urządzenie</h2>
+        <button class="modal-close" onclick="hideModals()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="info-box">
+          <h3>📱 Jak dodać urządzenie?</h3>
+          <ol>
+            <li>Połącz telefon z siecią WiFi urządzenia (np. "Sypialnia LED")</li>
+            <li>Hasło = nazwa sieci (np. <strong>Sypialnia LED</strong>)</li>
+            <li>Wróć tutaj i wpisz adres <strong>192.168.4.1</strong></li>
+          </ol>
+        </div>
+        
+        <div class="form-group">
+          <label>Nazwa urządzenia</label>
+          <input type="text" id="addName" placeholder="np. Lampa w sypialni">
+        </div>
+        <div class="form-group">
+          <label>Pokój</label>
+          <select id="addRoom">
+            <option value="🛏️ Sypialnia">🛏️ Sypialnia</option>
+            <option value="🛋️ Salon">🛋️ Salon</option>
+            <option value="🍳 Kuchnia">🍳 Kuchnia</option>
+            <option value="🚿 Łazienka">🚿 Łazienka</option>
+            <option value="👶 Pokój dziecka">👶 Pokój dziecka</option>
+            <option value="💼 Biuro">💼 Biuro</option>
+            <option value="🚪 Korytarz">🚪 Korytarz</option>
+            <option value="🏠 Inne">🏠 Inne</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Adres IP urządzenia</label>
+          <input type="text" id="addIp" placeholder="192.168.4.1" value="192.168.4.1" inputmode="url">
+          <div class="hint">Domyślny adres AP to 192.168.4.1</div>
+        </div>
+        
+        <button class="btn btn-primary" onclick="addDevice()" style="margin-top:20px">✅ Dodaj urządzenie</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Modal edycji -->
+  <div class="modal-overlay" id="editModal" onclick="if(event.target===this)hideModals()">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>✏️ Edytuj urządzenie</h2>
+        <button class="modal-close" onclick="hideModals()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Nazwa urządzenia</label>
+          <input type="text" id="editName">
+        </div>
+        <div class="form-group">
+          <label>Pokój</label>
+          <select id="editRoom">
+            <option value="🛏️ Sypialnia">🛏️ Sypialnia</option>
+            <option value="🛋️ Salon">🛋️ Salon</option>
+            <option value="🍳 Kuchnia">🍳 Kuchnia</option>
+            <option value="🚿 Łazienka">🚿 Łazienka</option>
+            <option value="👶 Pokój dziecka">👶 Pokój dziecka</option>
+            <option value="💼 Biuro">💼 Biuro</option>
+            <option value="🚪 Korytarz">🚪 Korytarz</option>
+            <option value="🏠 Inne">🏠 Inne</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Adres IP</label>
+          <input type="text" id="editIp" inputmode="url">
+        </div>
+        
+        <button class="btn btn-primary" onclick="saveDevice()">💾 Zapisz zmiany</button>
+        <button class="btn btn-danger" onclick="deleteDevice()" style="margin-top:12px">🗑️ Usuń urządzenie</button>
+      </div>
+    </div>
+  </div>
+  
+  <div class="toast" id="toast"></div>
+  <div class="conn-status" id="connStatus">⚠️ Brak połączenia z urządzeniem</div>
+
+  <script>
+    // ============================================
+    // STATE
+    // ============================================
+    let devices = JSON.parse(localStorage.getItem('ledDevices') || '[]');
+    let currentDevice = null;
+    let isOn = true;
+    
+    function saveDevices() {
+      localStorage.setItem('ledDevices', JSON.stringify(devices));
+    }
+    
+    // ============================================
+    // UI HELPERS
+    // ============================================
+    function showToast(msg, error = false) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = 'toast show' + (error ? ' error' : '');
+      setTimeout(() => t.className = 'toast', 2500);
+    }
+    
+    function showConnStatus(show) {
+      document.getElementById('connStatus').classList.toggle('show', show);
+    }
+    
+    function $(id) { return document.getElementById(id); }
+    
+    // ============================================
+    // DEVICE LIST
+    // ============================================
+    function renderDevices() {
+      const container = $('devicesContainer');
+      
+      if (devices.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="icon">💡</div>
+            <h2>Brak urządzeń</h2>
+            <p>Połącz się z siecią WiFi urządzenia<br>(np. "Sypialnia LED") i dodaj je tutaj</p>
+            <button onclick="showAddModal()">+ Dodaj urządzenie</button>
+          </div>
+        `;
+        return;
+      }
+      
+      const rooms = {};
+      devices.forEach((d, i) => {
+        if (!rooms[d.room]) rooms[d.room] = [];
+        rooms[d.room].push({...d, index: i});
+      });
+      
+      let html = '';
+      for (const room in rooms) {
+        html += `<div class="section-title">${room}</div>`;
+        rooms[room].forEach(d => {
+          html += `
+            <div class="device-card ${d.online ? 'online' : 'offline'}" onclick="openDevice(${d.index})">
+              <div class="device-header">
+                <span class="device-name">${d.name}</span>
+                <span class="device-status ${d.online ? 'online' : 'offline'}">${d.online ? '● Online' : '○ Offline'}</span>
+              </div>
+              <div class="device-info">
+                <span class="device-ip">${d.ip}</span>
+              </div>
+            </div>
+          `;
+        });
+      }
+      
+      container.innerHTML = html;
+    }
+    
+    function checkDevicesStatus() {
+      devices.forEach((d, i) => {
+        fetch(`http://${d.ip}/status`, { signal: AbortSignal.timeout(3000) })
+          .then(r => r.json())
+          .then(data => {
+            devices[i].online = true;
+            renderDevices();
+          })
+          .catch(() => {
+            devices[i].online = false;
+            renderDevices();
+          });
+      });
+    }
+    
+    function refreshDevices() {
+      showToast('Odświeżanie...');
+      checkDevicesStatus();
+    }
+    
+    // ============================================
+    // ADD DEVICE
+    // ============================================
+    function showAddModal() {
+      $('addName').value = '';
+      $('addIp').value = '192.168.4.1';
+      $('addModal').classList.add('show');
+    }
+    
+    function hideModals() {
+      document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('show'));
+    }
+    
+    function addDevice() {
+      const name = $('addName').value.trim() || 'Nowe urządzenie';
+      const room = $('addRoom').value;
+      const ip = $('addIp').value.trim();
+      
+      if (!ip) {
+        showToast('Wpisz adres IP', true);
+        return;
+      }
+      
+      if (devices.some(d => d.ip === ip)) {
+        showToast('Urządzenie o tym IP już istnieje', true);
+        return;
+      }
+      
+      devices.push({ name, room, ip, online: false });
+      saveDevices();
+      hideModals();
+      renderDevices();
+      checkDevicesStatus();
+      showToast('✅ Urządzenie dodane!');
+    }
+    
+    // ============================================
+    // CONTROL PANEL
+    // ============================================
+    function openDevice(index) {
+      currentDevice = { ...devices[index], index };
+      
+      $('deviceList').style.display = 'none';
+      $('controlPanel').style.display = 'block';
+      
+      $('ctrlName').textContent = currentDevice.name;
+      $('ctrlRoom').textContent = currentDevice.room;
+      $('ctrlIp').textContent = currentDevice.ip;
+      
+      showConnStatus(false);
+      fetchStatus();
+    }
+    
+    function showDeviceList() {
+      $('deviceList').style.display = 'block';
+      $('controlPanel').style.display = 'none';
+      showConnStatus(false);
+      currentDevice = null;
+      checkDevicesStatus();
+    }
+    
+    function fetchStatus() {
+      if (!currentDevice) return;
+      
+      fetch(`http://${currentDevice.ip}/status`, { signal: AbortSignal.timeout(5000) })
+        .then(r => {
+          showConnStatus(false);
+          return r.json();
+        })
+        .then(d => {
+          if (!d) return;
+          
+          $('coldSlider').value = d.cold;
+          $('coldVal').textContent = d.cold;
+          $('warmSlider').value = d.warm;
+          $('warmVal').textContent = d.warm;
+          $('brSlider').value = d.br;
+          $('brVal').textContent = Math.round(d.br / 2.55) + '%';
+          
+          isOn = d.on;
+          $('pwrToggle').classList.toggle('on', isOn);
+        })
+        .catch(() => {
+          showConnStatus(true);
+        });
+    }
+    
+    function send(endpoint) {
+      if (!currentDevice) return;
+      
+      fetch(`http://${currentDevice.ip}${endpoint}`, { signal: AbortSignal.timeout(5000) })
+        .then(() => showConnStatus(false))
+        .catch(() => showConnStatus(true));
+    }
+    
+    function togglePower() {
+      isOn = !isOn;
+      $('pwrToggle').classList.toggle('on', isOn);
+      send('/power?state=' + (isOn ? 1 : 0));
+    }
+    
+    function selectColor(btn) {
+      document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('sel'));
+      btn.classList.add('sel');
+      
+      $('coldSlider').value = btn.dataset.c;
+      $('warmSlider').value = btn.dataset.w;
+      $('coldVal').textContent = btn.dataset.c;
+      $('warmVal').textContent = btn.dataset.w;
+      sendColor();
+    }
+    
+    function updateCold() {
+      $('coldVal').textContent = $('coldSlider').value;
+      document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('sel'));
+    }
+    
+    function updateWarm() {
+      $('warmVal').textContent = $('warmSlider').value;
+      document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('sel'));
+    }
+    
+    function updateBr() {
+      $('brVal').textContent = Math.round($('brSlider').value / 2.55) + '%';
+    }
+    
+    let colorDebounce = null;
+    function sendColor() {
+      clearTimeout(colorDebounce);
+      colorDebounce = setTimeout(() => {
+        send('/color?cold=' + $('coldSlider').value + '&warm=' + $('warmSlider').value);
+      }, 100);
+    }
+    
+    function sendBrightness() {
+      send('/brightness?value=' + $('brSlider').value);
+    }
+    
+    function selectAnim(btn) {
+      document.querySelectorAll('.anim-btn').forEach(b => b.classList.remove('sel'));
+      btn.classList.add('sel');
+      send('/animation?type=' + btn.dataset.a);
+    }
+    
+    // ============================================
+    // EDIT DEVICE
+    // ============================================
+    function showEditModal() {
+      if (!currentDevice) return;
+      $('editName').value = currentDevice.name;
+      $('editRoom').value = currentDevice.room;
+      $('editIp').value = currentDevice.ip;
+      $('editModal').classList.add('show');
+    }
+    
+    function saveDevice() {
+      if (!currentDevice) return;
+      
+      const name = $('editName').value.trim();
+      const room = $('editRoom').value;
+      const ip = $('editIp').value.trim();
+      
+      if (!name || !ip) {
+        showToast('Wypełnij nazwę i IP', true);
+        return;
+      }
+      
+      devices[currentDevice.index] = { ...devices[currentDevice.index], name, room, ip };
+      currentDevice = { ...devices[currentDevice.index], index: currentDevice.index };
+      
+      $('ctrlName').textContent = name;
+      $('ctrlRoom').textContent = room;
+      $('ctrlIp').textContent = ip;
+      
+      saveDevices();
+      hideModals();
+      showToast('✅ Zapisano!');
+    }
+    
+    function deleteDevice() {
+      if (!currentDevice) return;
+      if (!confirm('Usunąć "' + currentDevice.name + '"?')) return;
+      
+      devices.splice(currentDevice.index, 1);
+      saveDevices();
+      hideModals();
+      showDeviceList();
+      showToast('🗑️ Usunięto');
+    }
+    
+    // ============================================
+    // INIT
+    // ============================================
+    renderDevices();
+    setTimeout(checkDevicesStatus, 500);
+    setInterval(checkDevicesStatus, 30000);
+    
+    // Przycisk wstecz
+    window.addEventListener('popstate', () => {
+      if (currentDevice) showDeviceList();
+    });
+    
+    const originalOpenDevice = openDevice;
+    openDevice = function(index) {
+      history.pushState({device: index}, '');
+      originalOpenDevice(index);
+    };
+    
+    // Service Worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
+  </script>
+</body>
+</html>
